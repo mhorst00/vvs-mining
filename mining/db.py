@@ -1,35 +1,60 @@
-import sqlite3
+from datetime import datetime
+import functools
+from sqlalchemy import create_engine, Integer, JSON, Column, Sequence
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.ext.declarative import declarative_base
+
+EntityBase = declarative_base()
+
+CURRENT_DATE = datetime.now().date()
+ENGINE = create_engine(f"sqlite:///db{str(CURRENT_DATE)}.db", echo=True)
+SESSION = sessionmaker(bind=ENGINE)()
 
 
-TRIP_TABLE_NAME = "trip_table"
-STATION_TABLE_NAME = "station_table"
-
-con = sqlite3.connect("trip_delays.db")
-cur = con.cursor()
-
-
-def trips_to_db(trips: list, cursor: sqlite3.Cursor):
-    table_list = cursor.execute(
-        "SELECT name FROM sqlite_master WHERE type='table' AND"
-        f" name='{TRIP_TABLE_NAME}';"
-    ).fetchall()
-    if len(table_list) == 0:
-        cursor.execute(f"CREATE TABLE {TRIP_TABLE_NAME} (id integer, data json)")
-    for trip in trips:
-        cursor.execute(f"insert into {TRIP_TABLE_NAME} values ?", trip)
+class Trip(EntityBase):
+    __tablename__ = "trips"
+    id = Column(
+        Integer, Sequence("trip_id_seq"), primary_key=True, nullable=False
+    )
+    information = Column(JSON, nullable=True)
 
 
-def station_delays_to_db(station_delays: list, cursor: sqlite3.Cursor):
-    table_list = cursor.execute(
-        "SELECT name FROM sqlite_master WHERE type='table' AND"
-        f" name='{STATION_TABLE_NAME}';"
-    ).fetchall()
-    if len(table_list) == 0:
-        cursor.execute(
-            f"CREATE TABLE {STATION_TABLE_NAME} (id integer, data varchar(100))"
-        )
-    for station_delay in station_delays:
-        print(station_delay)
-        cursor.execute(
-            f"insert into {STATION_TABLE_NAME} values(?,?)", (1, station_delay)
-        )
+# Create all tables derived from the EntityBase object
+EntityBase.metadata.create_all(ENGINE)
+
+
+def daily_db(func):
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        new_date = datetime.now().date()
+        if new_date > CURRENT_DATE:
+            ENGINE = create_engine(
+                f"sqlite:///db{str(new_date)}.db", echo=True
+            )
+            SESSION = sessionmaker(bind=ENGINE)()
+            CURRENT_DAY = new_date
+            EntityBase.metadata.create_all(ENGINE)
+        return func(*args, **kwargs)
+
+    return wrapper
+
+
+@daily_db
+def new_entry(trip):
+    SESSION.add(trip)
+    SESSION.commit()
+    return True
+
+
+# Declare a new row
+first_item = Trip()
+first_item.information = dict(a=1, b="foo", c=[1, 1, 2, 3, 5, 8, 13])
+
+new_entry(first_item)
+
+
+# Get all saved items from the database
+for item in SESSION.query(Trip).all():
+    print(type(item.information))
+    # <class 'dict'>
+    print(item.id, item.information)
