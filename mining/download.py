@@ -3,12 +3,8 @@ import vvspy
 import concurrent.futures
 import requests
 import utils
-<<<<<<< HEAD
-=======
-import db
-import os
 import discord_logging
->>>>>>> 9304724 (add discord logging)
+
 from datetime import datetime
 from retry import retry
 
@@ -17,39 +13,36 @@ from retry import retry
 def get_trips_with_retries(
     start: str, destination: str, time: datetime, session: requests.Session
 ):
-    # print("get_trips_with_retries ", start, destination)
     try:
-        trips = vvspy.get_trips(start, destination, time, session=session, limit=5,
-                    timeout=(3.05, 6.1))
+        trips = vvspy.get_trips(
+            start, destination, time, session=session, limit=5, timeout=(3.05, 6.1)
+        )
         if trips is None:
-            # print("trips check fehlgeschlagen")
             raise Exception("trips is none")
     except Exception as err:
-        # print("error in retry: ", err)
         discord_logging.warning(str(err))
         raise Exception("Request timeout")
     return trips
 
 
-def get_all_trips_from_station(
-    start: str, stations: list[str], time: datetime
-):
+def get_all_trips_from_station(start: str, stations: list[str], time: datetime):
     results = []
     session = requests.Session()
     for destination in stations:
         if start is not destination:
             try:
-                # print("get_all_trips_from_station ", start, destination)
                 trips = get_trips_with_retries(
                     start, destination, time, session=session
                 )
-                # trips = vvspy.get_trips(start, destination, time, session=session)
                 for i in trips:
                     if isinstance(i, vvspy.obj.Trip):
                         trip = i.raw
                         results.append(trip)
             except Exception as err:
-                discord_logging.warning(str(err)+ utils.station_id_to_name(start), utils.station_id_to_name(destination) + str(type(trip)) )
+                discord_logging.warning(
+                    str(err) + utils.station_id_to_name(start),
+                    utils.station_id_to_name(destination) + str(type(trip)),
+                )
     return results
 
 
@@ -59,9 +52,7 @@ def get_station_departures(station: str, time: datetime):
 
 def get_all_trips(stations: list[str], curr_time: datetime):
     trips = []
-    with concurrent.futures.ThreadPoolExecutor(
-        max_workers=len(stations)
-    ) as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=len(stations)) as executor:
         future_to_trip = {
             executor.submit(
                 get_all_trips_from_station, start, stations, curr_time
@@ -73,15 +64,12 @@ def get_all_trips(stations: list[str], curr_time: datetime):
                 trips.extend(future.result())
             except Exception as err:
                 discord_logging.error(str(err))
-                # print(err)
         return trips
 
 
 def get_all_station_departures(stations: list[str], curr_time: datetime):
     station_delays = []
-    with concurrent.futures.ThreadPoolExecutor(
-        max_workers=len(stations)
-    ) as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=len(stations)) as executor:
         future_to_trip = {
             executor.submit(get_station_departures, start, curr_time): start
             for start in stations
@@ -91,7 +79,6 @@ def get_all_station_departures(stations: list[str], curr_time: datetime):
                 station_delays.extend(future.result())
             except Exception as err:
                 discord_logging.error(str(err))
-                # print(err)
     return station_delays
 
 
@@ -103,9 +90,4 @@ trips = get_all_trips(stations, curr_time)
 # trips = get_all_station_departures(stations, curr_time)
 print("Number of trips: ", len(trips))
 print("Size in bytes: ", sys.getsizeof(trips))
-# discord_logging.info("Number of trips: " + str(len(trips)))
-# discord_logging.info("Size in bytes: " + str(sys.getsizeof(trips)))
-# discord_logging.info("testInfo")
-# discord_logging.warning("testWarning")
-# discord_logging.error("testError")
 discord_logging.finishLogging(len(trips), sys.getsizeof(trips))

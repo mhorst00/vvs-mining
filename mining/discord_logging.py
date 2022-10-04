@@ -70,19 +70,19 @@ def sendMessages():
 
 
 def info(message: str):
-    # logging.info(message)
+    logging.info(message)
     infoList.append(message)
     # webhookLogging.send("INFO: " + message)
 
 
 def warning(message: str):
-    # logging.warn(message)
+    logging.warn(message)
     warningList.append(message)
     # webhookLogging.send("WARNING: " + message)
 
 
 def error(message: str):
-    # logging.error(message)
+    logging.error(message)
     errorList.append(message)
     webhookError.send(
         "<@&1020311126313009233> " + "ERROR: " + message,
