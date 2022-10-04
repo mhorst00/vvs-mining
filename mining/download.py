@@ -3,7 +3,32 @@ import vvspy
 import concurrent.futures
 import requests
 import utils
+<<<<<<< HEAD
+=======
+import db
+import os
+import discord_logging
+>>>>>>> 9304724 (add discord logging)
 from datetime import datetime
+from retry import retry
+
+
+@retry(Exception, delay=1, tries=5)
+def get_trips_with_retries(
+    start: str, destination: str, time: datetime, session: requests.Session
+):
+    # print("get_trips_with_retries ", start, destination)
+    try:
+        trips = vvspy.get_trips(start, destination, time, session=session, limit=5,
+                    timeout=(3.05, 6.1))
+        if trips is None:
+            # print("trips check fehlgeschlagen")
+            raise Exception("trips is none")
+    except Exception as err:
+        # print("error in retry: ", err)
+        discord_logging.warning(str(err))
+        raise Exception("Request timeout")
+    return trips
 
 
 def get_all_trips_from_station(
@@ -14,25 +39,17 @@ def get_all_trips_from_station(
     for destination in stations:
         if start is not destination:
             try:
-                trips = vvspy.get_trips(
-                    start,
-                    destination,
-                    time,
-                    session=session,
-                    limit=5,
-                    timeout=(3.05, 6.1),
+                # print("get_all_trips_from_station ", start, destination)
+                trips = get_trips_with_retries(
+                    start, destination, time, session=session
                 )
+                # trips = vvspy.get_trips(start, destination, time, session=session)
                 for i in trips:
                     if isinstance(i, vvspy.obj.Trip):
                         trip = i.raw
                         results.append(trip)
             except Exception as err:
-                print(
-                    err,
-                    utils.station_id_to_name(start),
-                    utils.station_id_to_name(destination),
-                    type(trip),
-                )
+                discord_logging.warning(str(err)+ utils.station_id_to_name(start), utils.station_id_to_name(destination) + str(type(trip)) )
     return results
 
 
@@ -55,7 +72,8 @@ def get_all_trips(stations: list[str], curr_time: datetime):
             try:
                 trips.extend(future.result())
             except Exception as err:
-                print(err)
+                discord_logging.error(str(err))
+                # print(err)
         return trips
 
 
@@ -72,7 +90,8 @@ def get_all_station_departures(stations: list[str], curr_time: datetime):
             try:
                 station_delays.extend(future.result())
             except Exception as err:
-                print(err)
+                discord_logging.error(str(err))
+                # print(err)
     return station_delays
 
 
@@ -81,5 +100,12 @@ stations = utils.read_station_ids_csv("vvs_sbahn_haltestellen_2022.csv")
 
 print(utils.station_id_to_name(stations[14]))
 trips = get_all_trips(stations, curr_time)
+# trips = get_all_station_departures(stations, curr_time)
 print("Number of trips: ", len(trips))
 print("Size in bytes: ", sys.getsizeof(trips))
+# discord_logging.info("Number of trips: " + str(len(trips)))
+# discord_logging.info("Size in bytes: " + str(sys.getsizeof(trips)))
+# discord_logging.info("testInfo")
+# discord_logging.warning("testWarning")
+# discord_logging.error("testError")
+discord_logging.finishLogging(len(trips), sys.getsizeof(trips))
