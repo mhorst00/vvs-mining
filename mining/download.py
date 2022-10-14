@@ -3,6 +3,7 @@ import vvspy
 import concurrent.futures
 import requests
 import utils
+import db
 import discord_logging
 
 from datetime import datetime
@@ -15,7 +16,12 @@ def get_trips_with_retries(
 ):
     try:
         trips = vvspy.get_trips(
-            start, destination, time, session=session, limit=5, timeout=(3.05, 6.1)
+            start,
+            destination,
+            time,
+            session=session,
+            limit=5,
+            timeout=(3.05, 6.1),
         )
 
     except Exception as err:
@@ -27,7 +33,9 @@ def get_trips_with_retries(
     return trips
 
 
-def get_all_trips_from_station(start: str, stations: list[str], time: datetime):
+def get_all_trips_from_station(
+    start: str, stations: list[str], time: datetime
+):
     results = []
     session = requests.Session()
     for destination in stations:
@@ -65,7 +73,9 @@ def get_station_departures(station: str, time: datetime):
 
 def get_all_trips(stations: list[str], curr_time: datetime):
     trips = []
-    with concurrent.futures.ThreadPoolExecutor(max_workers=len(stations)) as executor:
+    with concurrent.futures.ThreadPoolExecutor(
+        max_workers=len(stations)
+    ) as executor:
         future_to_trip = {
             executor.submit(
                 get_all_trips_from_station, start, stations, curr_time
@@ -82,7 +92,9 @@ def get_all_trips(stations: list[str], curr_time: datetime):
 
 def get_all_station_departures(stations: list[str], curr_time: datetime):
     station_delays = []
-    with concurrent.futures.ThreadPoolExecutor(max_workers=len(stations)) as executor:
+    with concurrent.futures.ThreadPoolExecutor(
+        max_workers=len(stations)
+    ) as executor:
         future_to_trip = {
             executor.submit(get_station_departures, start, curr_time): start
             for start in stations
@@ -101,9 +113,13 @@ stations = utils.read_station_ids_csv("vvs_sbahn_haltestellen_2022.csv")
 
 print(utils.station_id_to_name(stations[14]))
 trips = get_all_trips(stations, curr_time)
+x = db.new_entries(trips)
+if x:
+    discord_logging.error("Could not save trips")
 # trips = get_all_station_departures(stations, curr_time)
 time_for_execute = datetime.now() - curr_time
 print("Number of trips: ", len(trips))
 print("Size in bytes: ", sys.getsizeof(trips))
 print("Executed in: ", time_for_execute)
+del trips
 discord_logging.finishLogging(len(trips), sys.getsizeof(trips))

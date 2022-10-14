@@ -6,14 +6,16 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 
 CURRENT_DATE = datetime.now().date()
-ENGINE = create_engine(f"sqlite:///db{str(CURRENT_DATE)}.db", echo=True)
+ENGINE = create_engine(f"sqlite:///db{str(CURRENT_DATE)}.db")
 SESSION = sessionmaker(bind=ENGINE)()
 ENTITY_BASE = declarative_base()
 
 
 class Trip(ENTITY_BASE):
     __tablename__ = "trips"
-    id = Column(Integer, Sequence("trip_id_seq"), primary_key=True, nullable=False)
+    id = Column(
+        Integer, Sequence("trip_id_seq"), primary_key=True, nullable=False
+    )
     information = Column(JSON, nullable=True)
 
 
@@ -30,7 +32,7 @@ def daily_db(func):
         global ENTITY_BASE
         new_date = datetime.now().date()
         if new_date > CURRENT_DATE:
-            ENGINE = create_engine(f"sqlite:///db{str(new_date)}.db", echo=True)
+            ENGINE = create_engine(f"sqlite:///db{str(new_date)}.db")
             SESSION = sessionmaker(bind=ENGINE)()
             CURRENT_DATE = new_date
             ENTITY_BASE.metadata.create_all(ENGINE)
@@ -42,9 +44,23 @@ def daily_db(func):
 @daily_db
 def new_entry(trip):
     try:
-        SESSION.add(trip)
+        new_trip = Trip()
+        new_trip.information = trip
+        SESSION.add(new_trip)
         SESSION.commit()
-        return True
+    except sqlalchemy.exc.SQLAlchemyError as e:
+        error = str(e.__dict__["orig"])
+        return error
+
+
+@daily_db
+def new_entries(trips: list[dict]):
+    try:
+        for i in trips:
+            new_trip = Trip()
+            new_trip.information = i
+            SESSION.add(new_trip)
+        SESSION.commit()
     except sqlalchemy.exc.SQLAlchemyError as e:
         error = str(e.__dict__["orig"])
         return error
@@ -54,8 +70,7 @@ def new_entry(trip):
 def del_entry(trip):
     try:
         SESSION.delete(trip)
-        SESSION.commit()
-        return True
+        SESSION.flush()
     except sqlalchemy.exc.SQLAlchemyError as e:
         error = str(e.__dict__["orig"])
         return error
@@ -70,25 +85,10 @@ def get_all_entries():
         return error
 
 
-# Declare a new row
-first_item = Trip()
-first_item.information = dict(a=1, b="foo", c=[1, 1, 2, 3, 5, 8, 13])
-
-new_entry(first_item)
-
-
-# Get all saved items from the database
-for item in SESSION.query(Trip).all():
-    print(type(item.information))
-    # <class 'dict'>
-    print(item.id, item.information)
-
-trips = get_all_entries()
-for i in trips:
-    del_entry(i)
-
-# Get all saved items from the database
-for item in SESSION.query(Trip).all():
-    print(type(item.information))
-    # <class 'dict'>
-    print(item.id, item.information)
+@daily_db
+def get_first_entry() -> Trip:
+    try:
+        return SESSION.get(Trip, 1)
+    except sqlalchemy.exc.SQLAlchemyError as e:
+        error = str(e.__dict__["orig"])
+        return error
