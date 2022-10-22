@@ -33,7 +33,7 @@ def initialise():
     global WEBHOOK_LOGGING_ENABLED
     global FILE_LOGGING_ENABLED
     global WEBHOOK_LOGGING
-    Path("./logs").mkdir(exist_ok=True)
+    Path("/data/logs").mkdir(exist_ok=True)
     # if url is not present disable the corresponding logging
     if WEBHOOK_ERROR_URL == "":
         logging.warning(

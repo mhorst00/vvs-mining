@@ -14,9 +14,9 @@ from sqlalchemy.orm import sessionmaker, relationship
 from sqlalchemy.ext.declarative import declarative_base
 from pathlib import Path
 
-Path("./db").mkdir(exist_ok=True)
+Path("/data/db").mkdir(exist_ok=True)
 CURRENT_DATE = datetime.now().date()
-ENGINE = create_engine(f"sqlite:///./db/{str(CURRENT_DATE)}.db")
+ENGINE = create_engine(f"sqlite:////data/db/{str(CURRENT_DATE)}.db")
 SESSION = sessionmaker(bind=ENGINE)()
 ENTITY_BASE = declarative_base()
 
@@ -191,7 +191,7 @@ def daily_db(func):
         global ENTITY_BASE
         new_date = datetime.now().date()
         if new_date > CURRENT_DATE:
-            ENGINE = create_engine(f"sqlite:///./db/{str(new_date)}.db")
+            ENGINE = create_engine(f"sqlite:////data/db/{str(new_date)}.db")
             SESSION = sessionmaker(bind=ENGINE)()
             CURRENT_DATE = new_date
             ENTITY_BASE.metadata.create_all(ENGINE)
