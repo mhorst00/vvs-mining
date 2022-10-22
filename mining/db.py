@@ -8,8 +8,6 @@ from sqlalchemy import (
     Sequence,
     Boolean,
     String,
-    ARRAY,
-    Float,
     ForeignKey,
 )
 from sqlalchemy.orm import sessionmaker, relationship
@@ -41,12 +39,12 @@ class Leg(ENTITY_BASE):
     data_trip = relationship("Trip", back_populates="legs")
     duration = Column(Integer, nullable=False)
     isRealtimeControlled = Column(Boolean, nullable=False)
-    realtimeStatus = Column(ARRAY(String), nullable=False)
-    origin = relationship("Station", back_populates="data_origin")
-    destination = relationship("Station", back_populates="data_destination")
+    realtimeStatus = Column(String, nullable=False)
+    origin = relationship("Origin", back_populates="data_leg")
+    destination = relationship("Destination", back_populates="data_leg")
     transportation_id = Column(String, nullable=False)
     transportation_name = Column(String, nullable=False)
-    transportation_disassembledName = Column(String, nullable=False)
+    transportation_disassembledName = Column(String, nullable=True)
     transportation_number = Column(String, nullable=False)
     transportation_description = Column(String, nullable=False)
     transportation_product_id = Column(Integer, nullable=False)
@@ -68,53 +66,128 @@ class Leg(ENTITY_BASE):
     transportation_properties_lineDisplay = Column(String, nullable=False)
     transportation_properties_globalId = Column(String, nullable=False)
     hints = relationship("Hint", back_populates="data_leg")
-    stopSequence = relationship("Station", back_populates="data_stopSequence")
+    stopSequence = relationship("Stop", back_populates="data_leg")
     infos = relationship("Info", back_populates="data_leg")
     pathDescriptions = relationship(
         "PathDescriptions", back_populates="data_pathDescriptions"
     )
     interchange_desc = Column(String, nullable=True)
     interchange_type = Column(Integer, nullable=True)
-    interchange_coords = Column(ARRAY(Float, dimensions=2), nullable=True)
-    properties_vehicleAccess = Column(ARRAY(String), nullable=False)
+    interchange_coords = Column(String, nullable=True)
+    properties_vehicleAccess = Column(String, nullable=False)
     properties_PlanWheelChairAccess = Column(String, nullable=True)
 
 
-class Station(ENTITY_BASE):
-    __tablename__ = "stations"
+class Origin(ENTITY_BASE):
+    __tablename__ = "origins"
     data_id = Column(
-        Integer, Sequence("station_id_seq"), primary_key=True, nullable=False
+        Integer, Sequence("origins_id_seq"), primary_key=True, nullable=False
     )
-    data_origin = relationship("Leg", back_populates="origin")
-    data_origin_id = Column(Integer, ForeignKey("legs.data_id"), nullable=True)
-    data_destination = relationship("Leg", back_populates="destination")
-    data_destination_id = Column(
-        Integer, ForeignKey("legs.data_id"), nullable=True
-    )
-    data_stopSequence = relationship("Leg", back_populates="stopSequence")
-    data_stopSequence_id = Column(
-        Integer, ForeignKey("legs.data_id"), nullable=True
-    )
+    data_leg = relationship("Leg", back_populates="origin")
+    data_leg_id = Column(Integer, ForeignKey("legs.data_id"), nullable=True)
     isGlobalId = Column(Boolean, nullable=False)
     id = Column(String, nullable=False)
     name = Column(String, nullable=False)
-    disassembledName = Column(String, nullable=False)
+    disassembledName = Column(String, nullable=True)
     type = Column(String, nullable=False)
     pointType = Column(String, nullable=False)
-    coord = Column(ARRAY(Float), nullable=False)
+    coord = Column(String, nullable=False)
     niveau = Column(Integer, nullable=False)
     parent_isGlobalId = Column(Boolean, nullable=False)
     parent_id = Column(String, nullable=False)
     parent_name = Column(String, nullable=False)
-    parent_disassembledName = Column(String, nullable=False)
+    parent_disassembledName = Column(String, nullable=True)
     parent_type = Column(String, nullable=False)
     parent_parent_id = Column(String, nullable=False)
     parent_parent_name = Column(String, nullable=False)
     parent_parent_type = Column(String, nullable=False)
     parent_properties_stopId = Column(String, nullable=False)
-    parent_coord = Column(ARRAY(Float), nullable=False)
+    parent_coord = Column(String, nullable=False)
     parent_niveau = Column(Integer, nullable=False)
-    productClasses = Column(ARRAY(String), nullable=False)
+    productClasses = Column(String, nullable=False)
+    arrivalTimePlanned = Column(String, nullable=True)
+    arrivalTimeEstimated = Column(String, nullable=True)
+    departureTimePlanned = Column(String, nullable=True)
+    departureTimeEstimated = Column(String, nullable=True)
+    # properties_downloads does not contain usable data
+    properties_areaNiveauDiva = Column(String, nullable=False)
+    properties_stoppingPointPlanned = Column(String, nullable=False)
+    properties_areaGid = Column(String, nullable=False)
+    properties_area = Column(String, nullable=False)
+    properties_platform = Column(String, nullable=False)
+    properties_platformName = Column(String, nullable=False)
+
+
+class Destination(ENTITY_BASE):
+    __tablename__ = "destinations"
+    data_id = Column(
+        Integer,
+        Sequence("destinations_id_seq"),
+        primary_key=True,
+        nullable=False,
+    )
+    data_leg = relationship("Leg", back_populates="destination")
+    data_leg_id = Column(Integer, ForeignKey("legs.data_id"), nullable=False)
+    isGlobalId = Column(Boolean, nullable=False)
+    id = Column(String, nullable=False)
+    name = Column(String, nullable=False)
+    disassembledName = Column(String, nullable=True)
+    type = Column(String, nullable=False)
+    pointType = Column(String, nullable=False)
+    coord = Column(String, nullable=False)
+    niveau = Column(Integer, nullable=False)
+    parent_isGlobalId = Column(Boolean, nullable=False)
+    parent_id = Column(String, nullable=False)
+    parent_name = Column(String, nullable=False)
+    parent_disassembledName = Column(String, nullable=True)
+    parent_type = Column(String, nullable=False)
+    parent_parent_id = Column(String, nullable=False)
+    parent_parent_name = Column(String, nullable=False)
+    parent_parent_type = Column(String, nullable=False)
+    parent_properties_stopId = Column(String, nullable=False)
+    parent_coord = Column(String, nullable=False)
+    parent_niveau = Column(Integer, nullable=False)
+    productClasses = Column(String, nullable=False)
+    arrivalTimePlanned = Column(String, nullable=True)
+    arrivalTimeEstimated = Column(String, nullable=True)
+    departureTimePlanned = Column(String, nullable=True)
+    departureTimeEstimated = Column(String, nullable=True)
+    # properties_downloads does not contain usable data
+    properties_areaNiveauDiva = Column(String, nullable=False)
+    properties_stoppingPointPlanned = Column(String, nullable=False)
+    properties_areaGid = Column(String, nullable=False)
+    properties_area = Column(String, nullable=False)
+    properties_platform = Column(String, nullable=False)
+    properties_platformName = Column(String, nullable=False)
+
+
+class Stop(ENTITY_BASE):
+    __tablename__ = "stops"
+    data_id = Column(
+        Integer, Sequence("stops_id_seq"), primary_key=True, nullable=False
+    )
+    data_leg = relationship("Leg", back_populates="stopSequence")
+    data_leg_id = Column(Integer, ForeignKey("legs.data_id"), nullable=False)
+    isGlobalId = Column(Boolean, nullable=False)
+    id = Column(String, nullable=False)
+    name = Column(String, nullable=False)
+    disassembledName = Column(String, nullable=True)
+    type = Column(String, nullable=False)
+    pointType = Column(String, nullable=False)
+    coord = Column(String, nullable=False)
+    niveau = Column(Integer, nullable=False)
+    parent_isGlobalId = Column(Boolean, nullable=False)
+    parent_id = Column(String, nullable=False)
+    parent_name = Column(String, nullable=False)
+    parent_disassembledName = Column(String, nullable=True)
+    parent_type = Column(String, nullable=False)
+    parent_parent_id = Column(String, nullable=False)
+    parent_parent_name = Column(String, nullable=False)
+    parent_parent_type = Column(String, nullable=False)
+    parent_properties_stopId = Column(String, nullable=False)
+    parent_coord = Column(String, nullable=False)
+    parent_niveau = Column(Integer, nullable=False)
+    productClasses = Column(String, nullable=False)
     arrivalTimePlanned = Column(String, nullable=True)
     arrivalTimeEstimated = Column(String, nullable=True)
     departureTimePlanned = Column(String, nullable=True)
@@ -141,7 +214,7 @@ class PathDescriptions(ENTITY_BASE):
     manoeuvre = Column(String, nullable=False)
     name = Column(String, nullable=False)
     niveau = Column(Integer, nullable=False)
-    coord = Column(ARRAY(Float), nullable=False)
+    coord = Column(String, nullable=False)
     skyDirection = Column(Integer, nullable=False)
     duration = Column(Integer, nullable=False)
     cumDuration = Column(Integer, nullable=False)
@@ -218,25 +291,29 @@ def new_entry(trip):
             new_leg = Leg()
             new_leg.duration = int(i["duration"])
             new_leg.isRealtimeControlled = bool(i["isRealtimeControlled"])
-            new_leg.realtimeStatus = i["realtimeStatus"]
+            new_leg.realtimeStatus = str(i["realtimeStatus"])
 
-            new_origin = Station()
+            new_origin = Origin()
             new_origin.isGlobalId = bool(i["origin"]["isGlobalId"])
             new_origin.id = str(i["origin"]["id"])
             new_origin.name = str(i["origin"]["name"])
-            new_origin.disassembledName = str(i["origin"]["disassembledName"])
+            if "disassembledName" in i["origin"]:
+                new_origin.disassembledName = str(
+                    i["origin"]["disassembledName"]
+                )
             new_origin.type = str(i["origin"]["type"])
             new_origin.pointType = str(i["origin"]["pointType"])
-            new_origin.coord = i["origin"]["coord"]
+            new_origin.coord = str(i["origin"]["coord"])
             new_origin.niveau = int(i["origin"]["niveau"])
             new_origin.parent_isGlobalId = bool(
                 i["origin"]["parent"]["isGlobalId"]
             )
             new_origin.parent_id = str(i["origin"]["parent"]["id"])
             new_origin.parent_name = str(i["origin"]["parent"]["name"])
-            new_origin.parent_disassembledName = str(
-                i["origin"]["parent"]["disassembledName"]
-            )
+            if "disassembledName" in i["origin"]["parent"]:
+                new_origin.parent_disassembledName = str(
+                    i["origin"]["parent"]["disassembledName"]
+                )
             new_origin.parent_type = str(i["origin"]["parent"]["type"])
             new_origin.parent_parent_id = str(
                 i["origin"]["parent"]["parent"]["id"]
@@ -250,9 +327,9 @@ def new_entry(trip):
             new_origin.parent_properties_stopId = str(
                 i["origin"]["parent"]["properties"]["stopId"]
             )
-            new_origin.parent_coord = i["origin"]["parent"]["coord"]
+            new_origin.parent_coord = str(i["origin"]["parent"]["coord"])
             new_origin.parent_niveau = int(i["origin"]["parent"]["niveau"])
-            new_origin.productClasses = i["origin"]["productClasses"]
+            new_origin.productClasses = str(i["origin"]["productClasses"])
             new_origin.departureTimePlanned = str(
                 i["origin"]["departureTimePlanned"]
             )
@@ -275,76 +352,87 @@ def new_entry(trip):
             new_origin.properties_platformName = str(
                 i["origin"]["properties"]["platformName"]
             )
-            new_leg.origin = new_origin
+            new_leg.origin.append(new_origin)
 
-            new_destination = Station()
-            new_destination.isGlobalId = bool(i["origin"]["isGlobalId"])
-            new_destination.id = str(i["origin"]["id"])
-            new_destination.name = str(i["origin"]["name"])
-            new_destination.disassembledName = str(
-                i["origin"]["disassembledName"]
-            )
-            new_destination.type = str(i["origin"]["type"])
-            new_destination.pointType = str(i["origin"]["pointType"])
-            new_destination.coord = i["origin"]["coord"]
-            new_destination.niveau = int(i["origin"]["niveau"])
+            new_destination = Destination()
+            new_destination.isGlobalId = bool(i["destination"]["isGlobalId"])
+            new_destination.id = str(i["destination"]["id"])
+            new_destination.name = str(i["destination"]["name"])
+            if "disassembledName" in i["destination"]:
+                new_destination.disassembledName = str(
+                    i["destination"]["disassembledName"]
+                )
+            new_destination.type = str(i["destination"]["type"])
+            new_destination.pointType = str(i["destination"]["pointType"])
+            new_destination.coord = str(i["destination"]["coord"])
+            new_destination.niveau = int(i["destination"]["niveau"])
             new_destination.parent_isGlobalId = bool(
-                i["origin"]["parent"]["isGlobalId"]
+                i["destination"]["parent"]["isGlobalId"]
             )
-            new_destination.parent_id = str(i["origin"]["parent"]["id"])
-            new_destination.parent_name = str(i["origin"]["parent"]["name"])
-            new_destination.parent_disassembledName = str(
-                i["origin"]["parent"]["disassembledName"]
+            new_destination.parent_id = str(i["destination"]["parent"]["id"])
+            new_destination.parent_name = str(
+                i["destination"]["parent"]["name"]
             )
-            new_destination.parent_type = str(i["origin"]["parent"]["type"])
+            if "disassembledName" in i["destination"]["parent"]:
+                new_destination.parent_disassembledName = str(
+                    i["destination"]["parent"]["disassembledName"]
+                )
+            new_destination.parent_type = str(
+                i["destination"]["parent"]["type"]
+            )
             new_destination.parent_parent_id = str(
-                i["origin"]["parent"]["parent"]["id"]
+                i["destination"]["parent"]["parent"]["id"]
             )
             new_destination.parent_parent_name = str(
-                i["origin"]["parent"]["parent"]["name"]
+                i["destination"]["parent"]["parent"]["name"]
             )
             new_destination.parent_parent_type = str(
-                i["origin"]["parent"]["parent"]["type"]
+                i["destination"]["parent"]["parent"]["type"]
             )
             new_destination.parent_properties_stopId = str(
-                i["origin"]["parent"]["properties"]["stopId"]
+                i["destination"]["parent"]["properties"]["stopId"]
             )
-            new_destination.parent_coord = i["origin"]["parent"]["coord"]
+            new_destination.parent_coord = str(
+                i["destination"]["parent"]["coord"]
+            )
             new_destination.parent_niveau = int(
-                i["origin"]["parent"]["niveau"]
+                i["destination"]["parent"]["niveau"]
             )
-            new_destination.productClasses = i["origin"]["productClasses"]
+            new_destination.productClasses = str(
+                i["destination"]["productClasses"]
+            )
             new_destination.arrivalTimePlanned = str(
-                i["origin"]["arrivalTimePlanned"]
+                i["destination"]["arrivalTimePlanned"]
             )
             new_destination.arrivalTimeEstimated = str(
-                i["origin"]["arrivalTimeEstimated"]
+                i["destination"]["arrivalTimeEstimated"]
             )
             new_destination.properties_areaNiveauDiva = str(
-                i["origin"]["properties"]["AREA_NIVEAU_DIVA"]
+                i["destination"]["properties"]["AREA_NIVEAU_DIVA"]
             )
             new_destination.properties_stoppingPointPlanned = str(
-                i["origin"]["properties"]["stoppingPointPlanned"]
+                i["destination"]["properties"]["stoppingPointPlanned"]
             )
             new_destination.properties_areaGid = str(
-                i["origin"]["properties"]["areaGid"]
+                i["destination"]["properties"]["areaGid"]
             )
             new_destination.properties_area = str(
-                i["origin"]["properties"]["area"]
+                i["destination"]["properties"]["area"]
             )
             new_destination.properties_platform = str(
-                i["origin"]["properties"]["platform"]
+                i["destination"]["properties"]["platform"]
             )
             new_destination.properties_platformName = str(
-                i["origin"]["properties"]["platformName"]
+                i["destination"]["properties"]["platformName"]
             )
-            new_leg.destination = new_destination
+            new_leg.destination.append(new_destination)
 
             new_leg.transportation_id = str(i["transportation"]["id"])
             new_leg.transportation_name = str(i["transportation"]["name"])
-            new_leg.transportation_disassembledName = str(
-                i["transportation"]["disassembledName"]
-            )
+            if "disassembledName" in i["transportation"]:
+                new_leg.transportation_disassembledName = str(
+                    i["transportation"]["disassembledName"]
+                )
             new_leg.transportation_number = str(i["transportation"]["number"])
             new_leg.transportation_description = str(
                 i["transportation"]["description"]
@@ -417,87 +505,81 @@ def new_entry(trip):
                     hint_list.append(new_hint)
                 new_leg.hints = hint_list
 
-            if "stops" in i:
+            if "stopSequence" in i:
                 stops = list()
                 for stop in i["stopSequence"]:
-                    new_stop = Station()
-                    new_stop.isGlobalId = bool(stop["origin"]["isGlobalId"])
-                    new_stop.id = str(stop["origin"]["id"])
-                    new_stop.name = str(stop["origin"]["name"])
-                    new_stop.disassembledName = str(
-                        stop["origin"]["disassembledName"]
-                    )
-                    new_stop.type = str(stop["origin"]["type"])
-                    new_stop.pointType = str(stop["origin"]["pointType"])
-                    new_stop.coord = stop["origin"]["coord"]
-                    new_stop.niveau = int(stop["origin"]["niveau"])
+                    new_stop = Stop()
+                    new_stop.isGlobalId = bool(stop["isGlobalId"])
+                    new_stop.id = str(stop["id"])
+                    new_stop.name = str(stop["name"])
+                    if "disassembledName" in stop:
+                        new_stop.disassembledName = str(
+                            stop["disassembledName"]
+                        )
+                    new_stop.type = str(stop["type"])
+                    new_stop.pointType = str(stop["pointType"])
+                    new_stop.coord = str(stop["coord"])
+                    new_stop.niveau = int(stop["niveau"])
                     new_stop.parent_isGlobalId = bool(
-                        stop["origin"]["parent"]["isGlobalId"]
+                        stop["parent"]["isGlobalId"]
                     )
-                    new_stop.parent_id = str(stop["origin"]["parent"]["id"])
-                    new_stop.parent_name = str(
-                        stop["origin"]["parent"]["name"]
-                    )
-                    new_stop.parent_disassembledName = str(
-                        stop["origin"]["parent"]["disassembledName"]
-                    )
-                    new_stop.parent_type = str(
-                        stop["origin"]["parent"]["type"]
-                    )
+                    new_stop.parent_id = str(stop["parent"]["id"])
+                    new_stop.parent_name = str(stop["parent"]["name"])
+                    if "disassembledName" in stop["parent"]:
+                        new_stop.parent_disassembledName = str(
+                            stop["parent"]["disassembledName"]
+                        )
+                    new_stop.parent_type = str(stop["parent"]["type"])
                     new_stop.parent_parent_id = str(
-                        stop["origin"]["parent"]["parent"]["id"]
+                        stop["parent"]["parent"]["id"]
                     )
                     new_stop.parent_parent_name = str(
-                        stop["origin"]["parent"]["parent"]["name"]
+                        stop["parent"]["parent"]["name"]
                     )
                     new_stop.parent_parent_type = str(
-                        stop["origin"]["parent"]["parent"]["type"]
+                        stop["parent"]["parent"]["type"]
                     )
                     new_stop.parent_properties_stopId = str(
-                        stop["origin"]["parent"]["properties"]["stopId"]
+                        stop["parent"]["properties"]["stopId"]
                     )
-                    new_stop.parent_coord = stop["origin"]["parent"]["coord"]
-                    new_stop.parent_niveau = int(
-                        stop["origin"]["parent"]["niveau"]
-                    )
-                    new_stop.productClasses = stop["origin"]["productClasses"]
-                    if "departureTimePlanned" in stop["origin"]:
+                    new_stop.parent_coord = str(stop["parent"]["coord"])
+                    new_stop.parent_niveau = int(stop["parent"]["niveau"])
+                    new_stop.productClasses = str(stop["productClasses"])
+                    if "departureTimePlanned" in stop:
                         new_stop.departureTimePlanned = str(
-                            stop["origin"]["departureTimePlanned"]
+                            stop["departureTimePlanned"]
                         )
-                    if "departureTimeEstimated" in stop["origin"]:
+                    if "departureTimeEstimated" in stop:
                         new_stop.departureTimeEstimated = str(
-                            stop["origin"]["departureTimeEstimated"]
+                            stop["departureTimeEstimated"]
                         )
-                    if "arrivalTimePlanned" in stop["origin"]:
+                    if "arrivalTimePlanned" in stop:
                         new_stop.arrivalTimePlanned = str(
-                            stop["origin"]["arrivalTimePlanned"]
+                            stop["arrivalTimePlanned"]
                         )
-                    if "arrivalTimeEstimated" in stop["origin"]:
+                    if "arrivalTimeEstimated" in stop:
                         new_stop.arrivalTimeEstimated = str(
-                            stop["origin"]["arrivalTimeEstimated"]
+                            stop["arrivalTimeEstimated"]
                         )
                     new_stop.properties_areaNiveauDiva = str(
-                        stop["origin"]["properties"]["AREA_NIVEAU_DIVA"]
+                        stop["properties"]["AREA_NIVEAU_DIVA"]
                     )
                     new_stop.properties_stoppingPointPlanned = str(
-                        stop["origin"]["properties"]["stoppingPointPlanned"]
+                        stop["properties"]["stoppingPointPlanned"]
                     )
                     new_stop.properties_areaGid = str(
-                        stop["origin"]["properties"]["areaGid"]
+                        stop["properties"]["areaGid"]
                     )
-                    new_stop.properties_area = str(
-                        stop["origin"]["properties"]["area"]
-                    )
+                    new_stop.properties_area = str(stop["properties"]["area"])
                     new_stop.properties_platform = str(
-                        stop["origin"]["properties"]["platform"]
+                        stop["properties"]["platform"]
                     )
                     new_stop.properties_platformName = str(
-                        stop["origin"]["properties"]["platformName"]
+                        stop["properties"]["platformName"]
                     )
                     stops.append(new_stop)
 
-                new_leg.stopSequence = stops
+                new_leg.stopSequence.extend(stops)
 
             if "infos" in i:
                 info_list = list()
@@ -518,9 +600,10 @@ def new_entry(trip):
                     new_info.properties_infoType = str(
                         info["properties"]["infoType"]
                     )
-                    new_info.properties_timetableChange = str(
-                        info["properties"]["timetableChange"]
-                    )
+                    if "timetableChange" in info["properties"]:
+                        new_info.properties_timetableChange = str(
+                            info["properties"]["timetableChange"]
+                        )
                     new_info.properties_htmlText = str(
                         info["properties"]["htmlText"]
                     )
@@ -530,12 +613,18 @@ def new_entry(trip):
                     info_list.append(new_info)
                 new_leg.infos = info_list
 
-            new_leg.properties_vehicleAccess = str(
-                i["properties"]["vehicleAccess"]
-            )
-            new_leg.properties_PlanWheelChairAccess = str(
-                i["properties"]["PlanWheelChairAccess"]
-            )
+            if "interchange" in i:
+                new_leg.interchange_desc = str(i["interchange"]["desc"])
+                new_leg.interchange_type = int(i["interchange"]["type"])
+                new_leg.interchange_coords = str(i["interchange"]["coords"])
+
+            if "properties" in i:
+                new_leg.properties_vehicleAccess = str(
+                    i["properties"]["vehicleAccess"]
+                )
+                new_leg.properties_PlanWheelChairAccess = str(
+                    i["properties"]["PlanWheelChairAccess"]
+                )
             legs.append(new_leg)
 
         new_trip = Trip()
@@ -547,7 +636,7 @@ def new_entry(trip):
         SESSION.add(new_trip)
         SESSION.commit()
     except sqlalchemy.exc.SQLAlchemyError as e:
-        error = str(e.__dict__["orig"])
+        error = str(e)
         return error
 
 
@@ -560,7 +649,7 @@ def new_entries(trips: list[dict]):
             SESSION.add(new_trip)
         SESSION.commit()
     except sqlalchemy.exc.SQLAlchemyError as e:
-        error = str(e.__dict__["orig"])
+        error = str(e)
         return error
 
 
@@ -570,7 +659,7 @@ def del_entry(trip):
         SESSION.delete(trip)
         SESSION.flush()
     except sqlalchemy.exc.SQLAlchemyError as e:
-        error = str(e.__dict__["orig"])
+        error = str(e)
         return error
 
 
@@ -579,7 +668,7 @@ def get_all_entries():
     try:
         return SESSION.query(Trip).all()
     except sqlalchemy.exc.SQLAlchemyError as e:
-        error = str(e.__dict__["orig"])
+        error = str(e)
         return error
 
 
@@ -588,5 +677,5 @@ def get_first_entry() -> Trip:
     try:
         return SESSION.get(Trip, 1)
     except sqlalchemy.exc.SQLAlchemyError as e:
-        error = str(e.__dict__["orig"])
+        error = str(e)
         return error
