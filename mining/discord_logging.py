@@ -1,9 +1,8 @@
 import logging
 import os
-from shutil import ExecError
-from typing import Any
 from discord import SyncWebhook, File
 from datetime import datetime
+from pathlib import Path
 
 infoList = []
 warningList = []
@@ -34,9 +33,12 @@ def initialise():
     global WEBHOOK_LOGGING_ENABLED
     global FILE_LOGGING_ENABLED
     global WEBHOOK_LOGGING
+    Path("./logs").mkdir(exist_ok=True)
     # if url is not present disable the corresponding logging
     if WEBHOOK_ERROR_URL == "":
-        logging.warning("WEBHOOK_ERROR_URL is not set, deactivating error logging")
+        logging.warning(
+            "WEBHOOK_ERROR_URL is not set, deactivating error logging"
+        )
         WEBHOOK_ERROR_ENABLED = False
         FILE_ERROR_ENABLED = True
     else:
@@ -48,7 +50,9 @@ def initialise():
             FILE_ERROR_ENABLED = True
 
     if WEBHOOK_LOGGING_URL == "":
-        logging.warning("WEBHOOK_LOGGING_URL is not set, deactivating info logging")
+        logging.warning(
+            "WEBHOOK_LOGGING_URL is not set, deactivating info logging"
+        )
         WEBHOOK_LOGGING_ENABLED = False
         FILE_LOGGING_ENABLED = True
     else:
@@ -145,9 +149,5 @@ def warning(message: str):
 
 
 def error(message: str):
-    global WEBHOOK_ERROR
     logging.error(message)
     errorList.append(str(datetime.now()).replace(" ", "_") + ": " + message)
-    WEBHOOK_ERROR.send(
-        "<@&1020311126313009233> " + "ERROR: " + message,
-    )
