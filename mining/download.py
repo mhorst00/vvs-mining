@@ -114,8 +114,8 @@ try:
     print("Number of trips: ", len(trips))
     print("Size in bytes: ", sys.getsizeof(trips))
     print("Executed in: ", time_for_execute)
-    del trips
     discord_logging.finishLogging(len(trips), sys.getsizeof(trips))
+    del trips
 except Exception as err:
     discord_logging.error(str(err))
     discord_logging.finishLogging(0, 0)
