@@ -1,0 +1,10 @@
+[Unit]
+Description=VVS Miner service
+
+[Service]
+Restart=Never
+ExecStart=/usr/bin/podman run -d --rm --name vvs_miner -v /data/:/data/:Z vvs-miner:latest
+ExecStop=/usr/bin/podman stop -t 2 vvs_miner
+
+[Install]
+WantedBy=multi-user.target

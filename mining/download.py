@@ -26,16 +26,12 @@ def get_trips_with_retries(
 
     except Exception as err:
         discord_logging.warning(str(err))
-        # raise Exception("Request timeout")
     if trips is None:
         raise TypeError("trips was null")
-        # raise Exception("trips is none")
     return trips
 
 
-def get_all_trips_from_station(
-    start: str, stations: list[str], time: datetime
-):
+def get_all_trips_from_station(start: str, stations: list[str], time: datetime):
     results = []
     session = requests.Session()
     for destination in stations:
@@ -53,6 +49,7 @@ def get_all_trips_from_station(
                     discord_logging.info(
                         "trips is None for:"
                         + utils.station_id_to_name(start)
+                        + " "
                         + utils.station_id_to_name(destination)
                     )
             except Exception as err:
@@ -61,8 +58,6 @@ def get_all_trips_from_station(
                     + " "
                     + utils.station_id_to_name(start)
                     + utils.station_id_to_name(destination)
-                    + str(type(trips))
-                    + str(type(trip)),
                 )
     return results
 
@@ -73,9 +68,7 @@ def get_station_departures(station: str, time: datetime):
 
 def get_all_trips(stations: list[str], curr_time: datetime):
     trips = []
-    with concurrent.futures.ThreadPoolExecutor(
-        max_workers=len(stations)
-    ) as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=len(stations)) as executor:
         future_to_trip = {
             executor.submit(
                 get_all_trips_from_station, start, stations, curr_time
@@ -92,9 +85,7 @@ def get_all_trips(stations: list[str], curr_time: datetime):
 
 def get_all_station_departures(stations: list[str], curr_time: datetime):
     station_delays = []
-    with concurrent.futures.ThreadPoolExecutor(
-        max_workers=len(stations)
-    ) as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=len(stations)) as executor:
         future_to_trip = {
             executor.submit(get_station_departures, start, curr_time): start
             for start in stations
@@ -107,19 +98,24 @@ def get_all_station_departures(stations: list[str], curr_time: datetime):
     return station_delays
 
 
-discord_logging.initialise()
-curr_time = datetime.now()
-stations = utils.read_station_ids_csv("vvs_sbahn_haltestellen_2022.csv")
+try:
+    discord_logging.initialise()
+    curr_time = datetime.now()
+    stations = utils.read_station_ids_csv("vvs_sbahn_haltestellen_2022.csv")
+    print(utils.station_id_to_name(stations[14]))
 
-print(utils.station_id_to_name(stations[14]))
-trips = get_all_trips(stations, curr_time)
-x = db.new_entries(trips)
-if x:
-    discord_logging.error("Could not save trips")
-# trips = get_all_station_departures(stations, curr_time)
-time_for_execute = datetime.now() - curr_time
-print("Number of trips: ", len(trips))
-print("Size in bytes: ", sys.getsizeof(trips))
-print("Executed in: ", time_for_execute)
-del trips
-discord_logging.finishLogging(len(trips), sys.getsizeof(trips))
+    trips = get_all_trips(stations, curr_time)
+    x = db.new_entries(trips)
+    if x:
+        discord_logging.error("Could not save trips")
+    trips = get_all_station_departures(stations, curr_time)
+    time_for_execute = datetime.now() - curr_time
+    trips = ["apfel", "auto", "test"]
+    print("Number of trips: ", len(trips))
+    print("Size in bytes: ", sys.getsizeof(trips))
+    print("Executed in: ", time_for_execute)
+    discord_logging.finishLogging(len(trips), sys.getsizeof(trips))
+    del trips
+except Exception as err:
+    discord_logging.error(str(err))
+    discord_logging.finishLogging(0, 0)
