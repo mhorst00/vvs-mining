@@ -200,7 +200,8 @@ def new_trip(trip: dict):
             # skip possible bus routes on trip
             return
         new_leg = Leg()
-        new_leg.duration = int(i["duration"])
+        if "duration" in i:
+            new_leg.duration = int(i["duration"])
         if "isRealtimeControlled" in i:
             new_leg.isRealtimeControlled = bool(i["isRealtimeControlled"])
         if "realtimeStatus" in i:
@@ -209,81 +210,110 @@ def new_trip(trip: dict):
         if "transportation" in i:
             if "id" in i["transportation"]:
                 new_leg.transportation_id = str(i["transportation"]["id"])
-            new_leg.transportation_name = str(i["transportation"]["name"])
+            if "name" in i["transportation"]:
+                new_leg.transportation_name = str(i["transportation"]["name"])
             if "disassembledName" in i["transportation"]:
                 new_leg.transportation_disassembledName = str(
                     i["transportation"]["disassembledName"]
                 )
-            new_leg.transportation_number = str(i["transportation"]["number"])
-            new_leg.transportation_description = str(i["transportation"]["description"])
-            new_leg.transportation_product_id = int(
-                i["transportation"]["product"]["id"]
-            )
-            new_leg.transportation_product_class = int(
-                i["transportation"]["product"]["class"]
-            )
-            new_leg.transportation_product_name = str(
-                i["transportation"]["product"]["name"]
-            )
-            new_leg.transportation_product_iconId = int(
-                i["transportation"]["product"]["iconId"]
-            )
-            if "code" in i["transportation"]["operator"]:
-                new_leg.transportation_operator_code = str(
-                    i["transportation"]["operator"]["code"]
+            if "number" in i["transportation"]:
+                new_leg.transportation_number = str(i["transportation"]["number"])
+            if "description" in i["transportation"]:
+                new_leg.transportation_description = str(
+                    i["transportation"]["description"]
                 )
-            new_leg.transportation_operator_id = str(
-                i["transportation"]["operator"]["id"]
-            )
-            new_leg.transportation_operator_name = str(
-                i["transportation"]["operator"]["name"]
-            )
-            if "id" in i["transportation"]["destination"]:
-                new_leg.transportation_destination_id = str(
-                    i["transportation"]["destination"]["id"]
-                )
-            new_leg.transportation_destination_name = str(
-                i["transportation"]["destination"]["name"]
-            )
-            new_leg.transportation_destination_type = str(
-                i["transportation"]["destination"]["type"]
-            )
-            if "trainName" in i["transportation"]["properties"]:
-                new_leg.transportation_properties_trainName = str(
-                    i["transportation"]["properties"]["trainName"]
-                )
-            new_leg.transportation_properties_trainType = str(
-                i["transportation"]["properties"]["trainType"]
-            )
-            if "trainNumber" in i["transportation"]["properties"]:
-                new_leg.transportation_properties_trainNumber = str(
-                    i["transportation"]["properties"]["trainNumber"]
-                )
-            if "isROP" in i["transportation"]["properties"]:
-                new_leg.transportation_properties_isROP = bool(
-                    i["transportation"]["properties"]["isROP"]
-                )
-            new_leg.transportation_properties_tripCode = int(
-                i["transportation"]["properties"]["tripCode"]
-            )
-            new_leg.transportation_properties_timetablePeriod = str(
-                i["transportation"]["properties"]["timetablePeriod"]
-            )
-            new_leg.transportation_properties_lineDisplay = str(
-                i["transportation"]["properties"]["lineDisplay"]
-            )
-            new_leg.transportation_properties_globalId = str(
-                i["transportation"]["properties"]["globalId"]
-            )
+            if "product" in i["transportation"]:
+                if "id" in i["transportation"]["product"]:
+                    new_leg.transportation_product_id = int(
+                        i["transportation"]["product"]["id"]
+                    )
+                if "class" in i["transportation"]["product"]:
+                    new_leg.transportation_product_class = int(
+                        i["transportation"]["product"]["class"]
+                    )
+                if "name" in i["transportation"]["product"]:
+                    new_leg.transportation_product_name = str(
+                        i["transportation"]["product"]["name"]
+                    )
+                if "iconId" in i["transportation"]["product"]:
+                    new_leg.transportation_product_iconId = int(
+                        i["transportation"]["product"]["iconId"]
+                    )
+
+            if "operator" in i["transportation"]:
+                if "code" in i["transportation"]["operator"]:
+                    new_leg.transportation_operator_code = str(
+                        i["transportation"]["operator"]["code"]
+                    )
+                if "id" in i["transportation"]["operator"]:
+                    new_leg.transportation_operator_id = str(
+                        i["transportation"]["operator"]["id"]
+                    )
+                if "name" in i["transportation"]["operator"]:
+                    new_leg.transportation_operator_name = str(
+                        i["transportation"]["operator"]["name"]
+                    )
+
+            if "destination" in i["transportation"]:
+                if "id" in i["transportation"]["destination"]:
+                    new_leg.transportation_destination_id = str(
+                        i["transportation"]["destination"]["id"]
+                    )
+                if "name" in i["transportation"]["destination"]:
+                    new_leg.transportation_destination_name = str(
+                        i["transportation"]["destination"]["name"]
+                    )
+                if "type" in i["transportation"]["destination"]:
+                    new_leg.transportation_destination_type = str(
+                        i["transportation"]["destination"]["type"]
+                    )
+
+            if "properties" in i["transportation"]:
+                if "trainName" in i["transportation"]["properties"]:
+                    new_leg.transportation_properties_trainName = str(
+                        i["transportation"]["properties"]["trainName"]
+                    )
+                if "trainType" in i["transportation"]["properties"]:
+                    new_leg.transportation_properties_trainType = str(
+                        i["transportation"]["properties"]["trainType"]
+                    )
+                if "trainNumber" in i["transportation"]["properties"]:
+                    new_leg.transportation_properties_trainNumber = str(
+                        i["transportation"]["properties"]["trainNumber"]
+                    )
+                if "isROP" in i["transportation"]["properties"]:
+                    new_leg.transportation_properties_isROP = bool(
+                        i["transportation"]["properties"]["isROP"]
+                    )
+                if "tripCode" in i["transportation"]["properties"]:
+                    new_leg.transportation_properties_tripCode = int(
+                        i["transportation"]["properties"]["tripCode"]
+                    )
+                if "timetablePeriod" in i["transportation"]["properties"]:
+                    new_leg.transportation_properties_timetablePeriod = str(
+                        i["transportation"]["properties"]["timetablePeriod"]
+                    )
+                if "lineDisplay" in i["transportation"]["properties"]:
+                    new_leg.transportation_properties_lineDisplay = str(
+                        i["transportation"]["properties"]["lineDisplay"]
+                    )
+                if "globalId" in i["transportation"]["properties"]:
+                    new_leg.transportation_properties_globalId = str(
+                        i["transportation"]["properties"]["globalId"]
+                    )
 
         if "hints" in i:
             hint_list = list()
             for hint in i["hints"]:
                 new_hint = Hint()
-                new_hint.content = str(hint["content"])
-                new_hint.providerCode = str(hint["providerCode"])
-                new_hint.type = str(hint["type"])
-                new_hint.properties_subnet = str(hint["properties"]["subnet"])
+                if "content" in hint:
+                    new_hint.content = str(hint["content"])
+                if "providerCode" in hint:
+                    new_hint.providerCode = str(hint["providerCode"])
+                if "type" in hint:
+                    new_hint.type = str(hint["type"])
+                if "subnet" in hint:
+                    new_hint.properties_subnet = str(hint["properties"]["subnet"])
                 hint_list.append(new_hint)
             new_leg.hints = hint_list
 
@@ -291,26 +321,34 @@ def new_trip(trip: dict):
             stops = list()
             for stop in i["stopSequence"]:
                 new_stop = Stop()
-                new_stop.isGlobalId = bool(stop["isGlobalId"])
-                new_stop.id = str(stop["id"])
-                new_stop.name = str(stop["name"])
+                if "isGlobalId" in stop:
+                    new_stop.isGlobalId = bool(stop["isGlobalId"])
+                if "id" in stop:
+                    new_stop.id = str(stop["id"])
+                if "name" in stop:
+                    new_stop.name = str(stop["name"])
                 if "disassembledName" in stop:
                     new_stop.disassembledName = str(stop["disassembledName"])
                 if "type" in stop:
                     new_stop.type = str(stop["type"])
                 if "pointType" in stop:
                     new_stop.pointType = str(stop["pointType"])
-                new_stop.coord = str(stop["coord"])
-                new_stop.niveau = int(stop["niveau"])
+                if "coord" in stop:
+                    new_stop.coord = str(stop["coord"])
+                if "niveau" in stop:
+                    new_stop.niveau = int(stop["niveau"])
                 if "isGlobalId" in stop["parent"]:
                     new_stop.parent_isGlobalId = bool(stop["parent"]["isGlobalId"])
-                new_stop.parent_id = str(stop["parent"]["id"])
-                new_stop.parent_name = str(stop["parent"]["name"])
+                if "id" in stop["parent"]:
+                    new_stop.parent_id = str(stop["parent"]["id"])
+                if "name" in stop["parent"]:
+                    new_stop.parent_name = str(stop["parent"]["name"])
                 if "disassembledName" in stop["parent"]:
                     new_stop.parent_disassembledName = str(
                         stop["parent"]["disassembledName"]
                     )
-                new_stop.parent_type = str(stop["parent"]["type"])
+                if "type" in stop["parent"]:
+                    new_stop.parent_type = str(stop["parent"]["type"])
                 if "parent" in stop["parent"]:
                     new_stop.parent_parent_id = str(stop["parent"]["parent"]["id"])
                     new_stop.parent_parent_name = str(stop["parent"]["parent"]["name"])
@@ -324,7 +362,8 @@ def new_trip(trip: dict):
                     new_stop.parent_coord = str(stop["parent"]["coord"])
                 if "niveau" in stop["parent"]:
                     new_stop.parent_niveau = int(stop["parent"]["niveau"])
-                new_stop.productClasses = str(stop["productClasses"])
+                if "productClass" in stop:
+                    new_stop.productClasses = str(stop["productClasses"])
                 if "departureTimePlanned" in stop:
                     new_stop.departureTimePlanned = str(stop["departureTimePlanned"])
                 if "departureTimeEstimated" in stop:
@@ -335,14 +374,16 @@ def new_trip(trip: dict):
                     new_stop.arrivalTimePlanned = str(stop["arrivalTimePlanned"])
                 if "arrivalTimeEstimated" in stop:
                     new_stop.arrivalTimeEstimated = str(stop["arrivalTimeEstimated"])
-                new_stop.properties_areaNiveauDiva = str(
-                    stop["properties"]["AREA_NIVEAU_DIVA"]
-                )
+                if "AREA_NIVEAU_DIVA" in stop["properties"]:
+                    new_stop.properties_areaNiveauDiva = str(
+                        stop["properties"]["AREA_NIVEAU_DIVA"]
+                    )
                 if "stoppingPointPlanned" in stop["properties"]:
                     new_stop.properties_stoppingPointPlanned = str(
                         stop["properties"]["stoppingPointPlanned"]
                     )
-                new_stop.properties_areaGid = str(stop["properties"]["areaGid"])
+                if "areaGrid" in stop["properties"]:
+                    new_stop.properties_areaGid = str(stop["properties"]["areaGid"])
                 if "area" in stop["properties"]:
                     new_stop.properties_area = str(stop["properties"]["area"])
                 if "platform" in stop["properties"]:
@@ -397,18 +438,30 @@ def new_trip(trip: dict):
             pathDescriptions = list()
             for desc in i["pathDescriptions"]:
                 new_desc = PathDescription()
-                new_desc.turnDirection = str(desc["turnDirection"])
-                new_desc.manoeuvre = str(desc["manoeuvre"])
-                new_desc.name = str(desc["name"])
-                new_desc.niveau = int(desc["niveau"])
-                new_desc.coord = str(desc["coord"])
-                new_desc.skyDirection = int(desc["skyDirection"])
-                new_desc.duration = int(desc["duration"])
-                new_desc.cumDuration = int(desc["cumDuration"])
-                new_desc.distance = int(desc["distance"])
-                new_desc.cumDistance = int(desc["cumDistance"])
-                new_desc.fromCoordsIndex = int(desc["fromCoordsIndex"])
-                new_desc.toCoordsIndex = int(desc["toCoordsIndex"])
+                if "turnDirection" in desc:
+                    new_desc.turnDirection = str(desc["turnDirection"])
+                if "manoeuvre" in desc:
+                    new_desc.manoeuvre = str(desc["manoeuvre"])
+                if "name" in desc:
+                    new_desc.name = str(desc["name"])
+                if "niveau" in desc:
+                    new_desc.niveau = int(desc["niveau"])
+                if "coord" in desc:
+                    new_desc.coord = str(desc["coord"])
+                if "skyDirection" in desc:
+                    new_desc.skyDirection = int(desc["skyDirection"])
+                if "duration" in desc:
+                    new_desc.duration = int(desc["duration"])
+                if "cumDuration" in desc:
+                    new_desc.cumDuration = int(desc["cumDuration"])
+                if "distance" in desc:
+                    new_desc.distance = int(desc["distance"])
+                if "cumDistance" in desc:
+                    new_desc.cumDistance = int(desc["cumDistance"])
+                if "fromCoordsIndex" in desc:
+                    new_desc.fromCoordsIndex = int(desc["fromCoordsIndex"])
+                if "toCoordsIndex" in desc:
+                    new_desc.toCoordsIndex = int(desc["toCoordsIndex"])
                 if "properties" in desc:
                     new_desc.properties_INDOOR_TYPE = str(
                         desc["properties"]["INDOOR_TYPE"]
@@ -419,9 +472,12 @@ def new_trip(trip: dict):
             new_leg.pathDescriptions.extend(pathDescriptions)
 
         if "interchange" in i:
-            new_leg.interchange_desc = str(i["interchange"]["desc"])
-            new_leg.interchange_type = int(i["interchange"]["type"])
-            new_leg.interchange_coords = str(i["interchange"]["coords"])
+            if "desc" in i["interchange"]:
+                new_leg.interchange_desc = str(i["interchange"]["desc"])
+            if "type" in i["interchange"]:
+                new_leg.interchange_type = int(i["interchange"]["type"])
+            if "coords" in i["interchange"]:
+                new_leg.interchange_coords = str(i["interchange"]["coords"])
 
         if "properties" in i:
             if "vehicleAccess" in i["properties"]:
@@ -434,8 +490,10 @@ def new_trip(trip: dict):
 
     new_trip = Trip()
     new_trip.rating = int(trip["rating"])
-    new_trip.isAdditional = bool(trip["isAdditional"])
-    new_trip.interchanges = int(trip["interchanges"])
+    if "isAdditional" in trip:
+        new_trip.isAdditional = bool(trip["isAdditional"])
+    if "interchanges" in trip:
+        new_trip.interchanges = int(trip["interchanges"])
     new_trip.legs = legs
     return new_trip
 
