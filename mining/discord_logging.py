@@ -67,6 +67,7 @@ def initialise():
 
 def finishLogging(numberOfTrips: int, numberOfBytes: int):
     global LOG_FILENAME
+    global WEBHOOK_LOGGING
     # send basic information about result
     if WEBHOOK_LOGGING_ENABLED:
         WEBHOOK_LOGGING.send("Import has finished")
@@ -111,9 +112,9 @@ def error(message: str):
     global WEBHOOK_ERROR
     global errorCount
     logger = logging.getLogger("mining_logger")
-    logger.error(message)
+    logger.exception(message)
     errorCount += 1
     if WEBHOOK_ERROR_ENABLED:
         WEBHOOK_ERROR.send(
-            "<@&1020311126313009233> " + "ERROR: " + message,
+            "<@&1020311126313009233> " + "ERROR: " + str(message),
         )

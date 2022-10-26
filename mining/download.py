@@ -110,12 +110,11 @@ try:
         discord_logging.error("Could not save trips")
     trips = get_all_station_departures(stations, curr_time)
     time_for_execute = datetime.now() - curr_time
-    trips = ["apfel", "auto", "test"]
     print("Number of trips: ", len(trips))
     print("Size in bytes: ", sys.getsizeof(trips))
     print("Executed in: ", time_for_execute)
     discord_logging.finishLogging(len(trips), sys.getsizeof(trips))
     del trips
 except Exception as err:
-    discord_logging.error(str(err))
+    discord_logging.error(err)
     discord_logging.finishLogging(0, 0)

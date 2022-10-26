@@ -23,9 +23,7 @@ ENTITY_BASE = declarative_base()
 
 class Trip(ENTITY_BASE):
     __tablename__ = "trips"
-    data_id = Column(
-        Integer, Sequence("trip_id_seq"), primary_key=True, nullable=False
-    )
+    data_id = Column(Integer, Sequence("trip_id_seq"), primary_key=True, nullable=False)
     rating = Column(Integer, nullable=False)
     isAdditional = Column(Boolean, nullable=True)
     interchanges = Column(Integer, nullable=True)
@@ -34,9 +32,7 @@ class Trip(ENTITY_BASE):
 
 class Leg(ENTITY_BASE):
     __tablename__ = "legs"
-    data_id = Column(
-        Integer, Sequence("leg_id_seq"), primary_key=True, nullable=False
-    )
+    data_id = Column(Integer, Sequence("leg_id_seq"), primary_key=True, nullable=False)
     data_trip_id = Column(Integer, ForeignKey("trips.data_id"))
     data_trip = relationship("Trip", back_populates="legs")
     duration = Column(Integer, nullable=True)
@@ -123,9 +119,7 @@ class PathDescription(ENTITY_BASE):
     data_id = Column(
         Integer, Sequence("path_desc_id_seq"), primary_key=True, nullable=False
     )
-    data_pathDescription = relationship(
-        "Leg", back_populates="pathDescriptions"
-    )
+    data_pathDescription = relationship("Leg", back_populates="pathDescriptions")
     data_pathDescription_id = Column(Integer, ForeignKey("legs.data_id"))
     turnDirection = Column(String, nullable=True)
     manoeuvre = Column(String, nullable=True)
@@ -144,9 +138,7 @@ class PathDescription(ENTITY_BASE):
 
 class Info(ENTITY_BASE):
     __tablename__ = "infos"
-    data_id = Column(
-        Integer, Sequence("info_id_seq"), primary_key=True, nullable=False
-    )
+    data_id = Column(Integer, Sequence("info_id_seq"), primary_key=True, nullable=False)
     data_leg = relationship("Leg", back_populates="infos")
     data_leg_id = Column(Integer, ForeignKey("legs.data_id"))
     priority = Column(String, nullable=True)
@@ -167,9 +159,7 @@ class Info(ENTITY_BASE):
 
 class Hint(ENTITY_BASE):
     __tablename__ = "hints"
-    data_id = Column(
-        Integer, Sequence("data_id"), primary_key=True, nullable=False
-    )
+    data_id = Column(Integer, Sequence("data_id"), primary_key=True, nullable=False)
     data_leg = relationship("Leg", back_populates="hints")
     data_leg_id = Column(Integer, ForeignKey("legs.data_id"))
     content = Column(String, nullable=True)
@@ -203,7 +193,7 @@ def daily_db(func):
 def new_trip(trip: dict):
     legs = list()
     for i in trip["legs"]:
-        if not "trainType" in i["transportation"]["properties"]:
+        if "trainType" not in i["transportation"]["properties"]:
             # skip all other public transit methods except for trains
             return
         if "Bus" in str(i["transportation"]["properties"]["trainType"]):
@@ -225,9 +215,7 @@ def new_trip(trip: dict):
                     i["transportation"]["disassembledName"]
                 )
             new_leg.transportation_number = str(i["transportation"]["number"])
-            new_leg.transportation_description = str(
-                i["transportation"]["description"]
-            )
+            new_leg.transportation_description = str(i["transportation"]["description"])
             new_leg.transportation_product_id = int(
                 i["transportation"]["product"]["id"]
             )
@@ -315,9 +303,7 @@ def new_trip(trip: dict):
                 new_stop.coord = str(stop["coord"])
                 new_stop.niveau = int(stop["niveau"])
                 if "isGlobalId" in stop["parent"]:
-                    new_stop.parent_isGlobalId = bool(
-                        stop["parent"]["isGlobalId"]
-                    )
+                    new_stop.parent_isGlobalId = bool(stop["parent"]["isGlobalId"])
                 new_stop.parent_id = str(stop["parent"]["id"])
                 new_stop.parent_name = str(stop["parent"]["name"])
                 if "disassembledName" in stop["parent"]:
@@ -326,15 +312,9 @@ def new_trip(trip: dict):
                     )
                 new_stop.parent_type = str(stop["parent"]["type"])
                 if "parent" in stop["parent"]:
-                    new_stop.parent_parent_id = str(
-                        stop["parent"]["parent"]["id"]
-                    )
-                    new_stop.parent_parent_name = str(
-                        stop["parent"]["parent"]["name"]
-                    )
-                    new_stop.parent_parent_type = str(
-                        stop["parent"]["parent"]["type"]
-                    )
+                    new_stop.parent_parent_id = str(stop["parent"]["parent"]["id"])
+                    new_stop.parent_parent_name = str(stop["parent"]["parent"]["name"])
+                    new_stop.parent_parent_type = str(stop["parent"]["parent"]["type"])
                 if "properties" in stop["parent"]:
                     if "stopId" in stop["parent"]["properties"]:
                         new_stop.parent_properties_stopId = str(
@@ -346,21 +326,15 @@ def new_trip(trip: dict):
                     new_stop.parent_niveau = int(stop["parent"]["niveau"])
                 new_stop.productClasses = str(stop["productClasses"])
                 if "departureTimePlanned" in stop:
-                    new_stop.departureTimePlanned = str(
-                        stop["departureTimePlanned"]
-                    )
+                    new_stop.departureTimePlanned = str(stop["departureTimePlanned"])
                 if "departureTimeEstimated" in stop:
                     new_stop.departureTimeEstimated = str(
                         stop["departureTimeEstimated"]
                     )
                 if "arrivalTimePlanned" in stop:
-                    new_stop.arrivalTimePlanned = str(
-                        stop["arrivalTimePlanned"]
-                    )
+                    new_stop.arrivalTimePlanned = str(stop["arrivalTimePlanned"])
                 if "arrivalTimeEstimated" in stop:
-                    new_stop.arrivalTimeEstimated = str(
-                        stop["arrivalTimeEstimated"]
-                    )
+                    new_stop.arrivalTimeEstimated = str(stop["arrivalTimeEstimated"])
                 new_stop.properties_areaNiveauDiva = str(
                     stop["properties"]["AREA_NIVEAU_DIVA"]
                 )
@@ -368,15 +342,11 @@ def new_trip(trip: dict):
                     new_stop.properties_stoppingPointPlanned = str(
                         stop["properties"]["stoppingPointPlanned"]
                     )
-                new_stop.properties_areaGid = str(
-                    stop["properties"]["areaGid"]
-                )
+                new_stop.properties_areaGid = str(stop["properties"]["areaGid"])
                 if "area" in stop["properties"]:
                     new_stop.properties_area = str(stop["properties"]["area"])
                 if "platform" in stop["properties"]:
-                    new_stop.properties_platform = str(
-                        stop["properties"]["platform"]
-                    )
+                    new_stop.properties_platform = str(stop["properties"]["platform"])
                 if "platformName" in stop["properties"]:
                     new_stop.properties_platformName = str(
                         stop["properties"]["platformName"]
@@ -389,31 +359,36 @@ def new_trip(trip: dict):
             info_list = list()
             for info in i["infos"]:
                 new_info = Info()
-                new_info.priority = str(info["priority"])
-                new_info.id = str(info["id"])
-                new_info.version = str(info["version"])
-                new_info.type = str(info["type"])
-                new_info.urlText = str(info["urlText"])
-                new_info.url = str(info["url"])
-                new_info.content = str(info["content"])
-                new_info.subtitle = str(info["subtitle"])
-                new_info.title = str(info["title"])
-                new_info.properties_publisher = str(
-                    info["properties"]["publisher"]
-                )
-                new_info.properties_infoType = str(
-                    info["properties"]["infoType"]
-                )
+                if "priority" in info:
+                    new_info.priority = str(info["priority"])
+                if "id" in info:
+                    new_info.id = str(info["id"])
+                if "version" in info:
+                    new_info.version = str(info["version"])
+                if "type" in info:
+                    new_info.type = str(info["type"])
+                if "urlText" in info:
+                    new_info.urlText = str(info["urlText"])
+                if "url" in info:
+                    new_info.url = str(info["url"])
+                if "content" in info:
+                    new_info.content = str(info["content"])
+                if "subtitle" in info:
+                    new_info.subtitle = str(info["subtitle"])
+                if "title" in info:
+                    new_info.title = str(info["title"])
+                if "publisher" in info["properties"]:
+                    new_info.properties_publisher = str(info["properties"]["publisher"])
+                if "infoType" in info["properties"]:
+                    new_info.properties_infoType = str(info["properties"]["infoType"])
                 if "timetableChange" in info["properties"]:
                     new_info.properties_timetableChange = str(
                         info["properties"]["timetableChange"]
                     )
-                new_info.properties_htmlText = str(
-                    info["properties"]["htmlText"]
-                )
-                new_info.properties_smsText = str(
-                    info["properties"]["smsText"]
-                )
+                if "htmlText" in info["properties"]:
+                    new_info.properties_htmlText = str(info["properties"]["htmlText"])
+                if "smsText" in info["properties"]:
+                    new_info.properties_smsText = str(info["properties"]["smsText"])
                 info_list.append(new_info)
 
             new_leg.infos.extend(info_list)
@@ -450,9 +425,7 @@ def new_trip(trip: dict):
 
         if "properties" in i:
             if "vehicleAccess" in i["properties"]:
-                new_leg.properties_vehicleAccess = str(
-                    i["properties"]["vehicleAccess"]
-                )
+                new_leg.properties_vehicleAccess = str(i["properties"]["vehicleAccess"])
             if "PlanWheelChairAccess" in i["properties"]:
                 new_leg.properties_PlanWheelChairAccess = str(
                     i["properties"]["PlanWheelChairAccess"]
