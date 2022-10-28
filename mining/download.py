@@ -25,8 +25,9 @@ def get_trips_with_retries(
         )
 
     except Exception as err:
-        discord_logging.warning(str(err))
+        discord_logging.warning(err)
     if trips is None:
+        discord_logging.info("trips was null in retry function")
         raise TypeError("trips was null")
     return trips
 
@@ -53,12 +54,7 @@ def get_all_trips_from_station(start: str, stations: list[str], time: datetime):
                         + utils.station_id_to_name(destination)
                     )
             except Exception as err:
-                discord_logging.warning(
-                    str(err)
-                    + " "
-                    + utils.station_id_to_name(start)
-                    + utils.station_id_to_name(destination)
-                )
+                discord_logging.warning(err)
     return results
 
 
@@ -79,7 +75,7 @@ def get_all_trips(stations: list[str], curr_time: datetime):
             try:
                 trips.extend(future.result())
             except Exception as err:
-                discord_logging.error(str(err))
+                discord_logging.error(err)
         return trips
 
 
@@ -94,16 +90,14 @@ def get_all_station_departures(stations: list[str], curr_time: datetime):
             try:
                 station_delays.extend(future.result())
             except Exception as err:
-                discord_logging.error(str(err))
+                discord_logging.error(err)
     return station_delays
 
 
+discord_logging.initialise()
+curr_time = datetime.now()
+stations = utils.read_station_ids_csv("vvs_sbahn_haltestellen_2022.csv")
 try:
-    discord_logging.initialise()
-    curr_time = datetime.now()
-    stations = utils.read_station_ids_csv("vvs_sbahn_haltestellen_2022.csv")
-    print(utils.station_id_to_name(stations[14]))
-
     trips = get_all_trips(stations, curr_time)
     x = db.new_entries(trips)
     if x:
