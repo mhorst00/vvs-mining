@@ -94,21 +94,21 @@ def get_all_station_departures(stations: list[str], curr_time: datetime):
     return station_delays
 
 
-discord_logging.initialise()
-curr_time = datetime.now()
-stations = utils.read_station_ids_csv("vvs_sbahn_haltestellen_2022.csv")
-try:
-    trips = get_all_trips(stations, curr_time)
-    x = db.new_entries(trips)
-    if x:
-        discord_logging.error("Could not save trips")
-    trips = get_all_station_departures(stations, curr_time)
-    time_for_execute = datetime.now() - curr_time
-    print("Number of trips: ", len(trips))
-    print("Size in bytes: ", sys.getsizeof(trips))
-    print("Executed in: ", time_for_execute)
-    discord_logging.finishLogging(len(trips), sys.getsizeof(trips))
-    del trips
-except Exception as err:
-    discord_logging.error(err)
-    discord_logging.finishLogging(0, 0)
+if __name__ == "__main__":
+    discord_logging.initialise()
+    discord_logging.info("Starting import")
+    curr_time = datetime.now()
+    stations = utils.read_station_ids_csv("vvs_sbahn_haltestellen_2022.csv")
+    try:
+        trips = get_all_trips(stations, curr_time)
+        tripCount = len(trips)
+        x = db.new_entries(trips)
+        if x:
+            discord_logging.error("Could not save trips")
+        trips = get_all_station_departures(stations, curr_time)
+        time_for_execute = datetime.now() - curr_time
+        discord_logging.finishLogging(tripCount, sys.getsizeof(trips))
+        del trips
+    except Exception as err:
+        discord_logging.error(err)
+        discord_logging.finishLogging(0, 0)

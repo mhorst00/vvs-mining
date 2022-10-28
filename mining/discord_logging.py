@@ -69,6 +69,10 @@ def initialise():
 
 def finishLogging(numberOfTrips: int, numberOfBytes: int):
     global LOG_FILENAME
+    global WEBHOOK_LOGGING
+    global WEBHOOK_LOGGING_ENABLED
+    global WEBHOOK_ERROR
+    global WEBHOOK_ERROR_ENABLED
     global errorCount
     global warningCount
     global infoCount
@@ -102,7 +106,7 @@ def info(message):
 def warning(message):
     global warningCount
     logger = logging.getLogger("mining_logger")
-    logger.warn(message)
+    logger.warning(message)
     warningCount += 1
 
 

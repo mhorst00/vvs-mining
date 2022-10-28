@@ -154,6 +154,7 @@ cython_debug/
 
 # Ignore databases
 *.db
+*.db-journal
 
 # Ignore logs
 logs/**
