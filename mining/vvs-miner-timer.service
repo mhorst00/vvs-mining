@@ -1,9 +1,0 @@
-[Unit]
-Description=Execute VVS miner every hour
-
-[Timer]
-OnActiveSec=*-*-* *:00:00
-Unit=vvs-miner-container.service
-
-[Install]
-WantedBy=multi-user.target
