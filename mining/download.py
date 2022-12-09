@@ -49,7 +49,8 @@ def get_all_trips_from_station(start: str, stations: list[str], time: datetime):
                             del trip["isAdditional"]
                             del trip["daysOfService"]
                             for leg in range(len(trip["legs"])):
-                                del trip["legs"][leg]["coords"]
+                                if "coords" in trip["legs"][leg]:
+                                    del trip["legs"][leg]["coords"]
                             results.append(trip)
                 else:
                     discord_logging.info(
