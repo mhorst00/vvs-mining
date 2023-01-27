@@ -1,6 +1,8 @@
 import argparse
 import zstandard
 import pathlib
+from psycopg2 import sql
+import psycopg2.extras
 import polars as pl
 from enum import Enum
 
@@ -57,7 +59,6 @@ def read_db_to_df(mode: Mode) -> pl.DataFrame:
         ON trips.data_id=legs.data_trip_id
         INNER JOIN stops
         on legs.data_id=stops.data_leg_id
-        where transportation_name='S-Bahn S5'
         GROUP BY transportation_properties_trainNumber, name
         """
     elif mode is Mode.TRAIN_INCIDENT:
@@ -90,11 +91,61 @@ def read_db_to_df(mode: Mode) -> pl.DataFrame:
     return df
 
 
-def calculate_delays(mode: Mode, df: pl.DataFrame):
-    # TODO drop stops only if both arrival and departure are null
+def write_df_to_db(mode: Mode, df: pl.DataFrame):
+    columns = sql.SQL(",").join(sql.Identifier(name.lower()) for name in df.columns)
+    values = sql.SQL(",").join([sql.Placeholder() for _ in df.columns])
+    table_name = mode.name.lower()
+    insert_stmt = sql.SQL("INSERT INTO {} ({}) VALUES({});").format(
+        sql.Identifier(table_name), columns, values
+    )
+    conn = psycopg2.connect(
+        database="data", user="admin", password="admin", host="127.0.0.1", port="5432"
+    )
+    create_psql_table(mode, conn)
+    cur = conn.cursor()
+    psycopg2.extras.execute_batch(cur, insert_stmt, df.rows())
+    conn.commit()
+
+
+def create_psql_table(mode: Mode, c: psycopg2.connection):
     if mode is Mode.STATION_DELAY:
+        cur = c.cursor()
+        cur.execute(
+            f"""CREATE TABLE IF NOT EXISTS {mode.name} (
+                        name text,
+                        transportation_name text,
+                        transportation_properties_trainNumber integer,
+                        arrivalTimePlanned timestamp,
+                        arrivalTimeEstimated timestamp,
+                        departureTimePlanned timestamp,
+                        departureTimeEstimated timestamp,
+                        arrivalDelay interval,
+                        departureDelay interval
+                        )"""
+        )
+        c.commit()
+
+
+def calculate_delays(mode: Mode, df: pl.DataFrame) -> pl.DataFrame:
+    df = df.filter(~pl.all(pl.col("transportation_name").str.contains("Stadtbahn")))
+    if mode is Mode.STATION_DELAY:
+        df = df.filter(~pl.all(pl.col("^.*Time.*$").is_null()))
+        df = df.with_columns(
+            pl.col("^.*Time.*$").str.strptime(pl.Datetime, fmt="%+").cast(pl.Datetime)
+        )
+        df = df.with_columns(
+            [
+                (pl.col("arrivalTimeEstimated") - pl.col("arrivalTimePlanned")).alias(
+                    "arrivalDelay"
+                ),
+                (
+                    pl.col("departureTimeEstimated") - pl.col("departureTimePlanned")
+                ).alias("departureDelay"),
+            ]
+        )
+        return df
+    else:
         pass
-    pass
 
 
 if __name__ == "__main__":
@@ -105,6 +156,8 @@ if __name__ == "__main__":
         zstd_to_temp(elem)
         print("Reading source db...")
         df = read_db_to_df(run_mode)
-        print(df)
-        print(df.drop_nulls())
         pathlib.Path("temp.db").unlink()
+        print(df)
+        df = calculate_delays(run_mode, df)
+        print(df)
+        write_df_to_db(run_mode, df)
