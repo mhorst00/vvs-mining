@@ -1,0 +1,6 @@
+connectorx==0.3.2a1
+numpy==1.24.1
+pathlib==1.0.1
+polars==0.15.17
+pyarrow==10.0.1
+zstandard==0.19.0
