@@ -7,6 +7,7 @@ from enum import Enum
 
 class Mode(Enum):
     STATION_DELAY = 1
+    TRAIN_INCIDENT = 2
 
 
 parser = argparse.ArgumentParser(
@@ -21,7 +22,7 @@ parser.add_argument(
     dest="mode",
     type=str,
     default="STATION_DELAY",
-    choices={"STATION_DELAY"},
+    choices={"STATION_DELAY", "TRAIN_INCIDENT"},
     help="In which mode the program should run",
 )
 parser.add_argument(
@@ -57,6 +58,22 @@ def read_db_to_df(mode: Mode) -> pl.DataFrame:
         on legs.data_id=stops.data_leg_id
         where transportation_name='S-Bahn S5'
         GROUP BY transportation_properties_trainNumber, name
+        """
+    elif mode is Mode.TRAIN_INCIDENT:
+        query = """
+        SELECT
+        stops.name, legs.transportation_name,
+        legs.transportation_properties_trainNumber,
+                hints.content
+        FROM trips
+        INNER JOIN legs
+        ON trips.data_id=legs.data_trip_id
+        INNER JOIN stops
+        on legs.data_id=stops.data_leg_id
+                INNER JOIN hints
+                on legs.data_id=hints.data_leg_id
+                WHERE hints.type like("%incident%")
+                GROUP BY legs.transportation_properties_trainNumber, stops.name
         """
     else:
         query = ""
