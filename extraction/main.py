@@ -8,6 +8,7 @@ from enum import Enum
 class Mode(Enum):
     STATION_DELAY = 1
     TRAIN_INCIDENT = 2
+    STATION_INFO = 3
 
 
 parser = argparse.ArgumentParser(
@@ -22,7 +23,7 @@ parser.add_argument(
     dest="mode",
     type=str,
     default="STATION_DELAY",
-    choices={"STATION_DELAY", "TRAIN_INCIDENT"},
+    choices={"STATION_DELAY", "TRAIN_INCIDENT", "STATION_INFO"},
     help="In which mode the program should run",
 )
 parser.add_argument(
@@ -74,6 +75,13 @@ def read_db_to_df(mode: Mode) -> pl.DataFrame:
                 on legs.data_id=hints.data_leg_id
                 WHERE hints.type like("%incident%")
                 GROUP BY legs.transportation_properties_trainNumber, stops.name
+        """
+    elif mode is Mode.STATION_INFO:
+        query = """
+        SELECT tmp.data_leg_id, tmp.id, stops.name, tmp.type, tmp.urlText, tmp.content
+        FROM (SELECT data_leg_id,id, type, urlText, content FROM infos GROUP BY id) as tmp
+        INNER JOIN stops ON tmp.data_leg_id = stops.data_leg_id
+        WHERE tmp.content LIKE ("%" || stops.name || "%")
         """
     else:
         query = ""
