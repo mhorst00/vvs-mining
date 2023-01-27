@@ -18,7 +18,29 @@ parser = argparse.ArgumentParser(
     description="Construct single Database from one or more sources",
 )
 parser.add_argument(
-    "-o", dest="filename", type=str, help="Name of the output file", required=True
+    "-o", dest="psql_host", type=str, help="PostgreSQL hostname", required=True
+)
+parser.add_argument(
+    "-u", dest="psql_user", type=str, help="PostgreSQL username", required=True
+)
+parser.add_argument(
+    "-p", dest="psql_pass", type=str, help="PostgreSQL password", required=True
+)
+parser.add_argument(
+    "--port",
+    dest="psql_port",
+    type=str,
+    help="PostgreSQL port",
+    required=False,
+    default=5432,
+)
+parser.add_argument(
+    "--db",
+    dest="psql_db",
+    type=str,
+    help="PostgreSQL database name",
+    required=False,
+    default="data",
 )
 parser.add_argument(
     "-m",
@@ -99,7 +121,11 @@ def write_df_to_db(mode: Mode, df: pl.DataFrame):
         sql.Identifier(table_name), columns, values
     )
     conn = psycopg2.connect(
-        database="data", user="admin", password="admin", host="127.0.0.1", port="5432"
+        database=args.psql_db,
+        user=args.psql_user,
+        password=args.psql_pass,
+        host=args.psql_host,
+        port=args.psql_port,
     )
     create_psql_table(mode, conn)
     cur = conn.cursor()
