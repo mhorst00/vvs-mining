@@ -205,8 +205,7 @@ if __name__ == "__main__":
             df = df.filter(
                 ~pl.all(pl.col("transportation_name").str.contains("Stadtbahn"))
             )
-        print(df)
+        print("Calculating and filtering...")
         if run_mode is Mode.STATION_DELAY:
             df = calculate_delays(df)
-        print(df)
         write_df_to_db(run_mode, df)
