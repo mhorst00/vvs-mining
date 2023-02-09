@@ -132,6 +132,24 @@ def create_psql_table(mode: Mode, c):
         c.commit()
 
 
+def calculate_delays(df: pl.DataFrame) -> pl.DataFrame:
+    df = df.filter(~pl.all(pl.col("^.*Time.*$").is_null()))
+    df = df.with_columns(
+        pl.col("^.*Time.*$").str.strptime(pl.Datetime, fmt="%+").cast(pl.Datetime)
+    )
+    df = df.with_columns(
+        [
+            (pl.col("arrivalTimeEstimated") - pl.col("arrivalTimePlanned")).alias(
+                "arrivalDelay"
+            ),
+            (pl.col("departureTimeEstimated") - pl.col("departureTimePlanned")).alias(
+                "departureDelay"
+            ),
+        ]
+    )
+    return df
+
+
 if __name__ == "__main__":
     args = parser.parse_args()
     run_mode = Mode[args.mode]
