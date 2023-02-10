@@ -145,8 +145,9 @@ def create_psql_table(mode: Mode, c):
                         arrivalTimeEstimated timestamp,
                         departureTimePlanned timestamp,
                         departureTimeEstimated timestamp,
-                        arrivalDelay interval,
-                        departureDelay interval
+                        arrivalDelay integer,
+                        departureDelay integer,
+                        delay integer
                         )"""
         )
         c.commit()
@@ -181,12 +182,26 @@ def calculate_delays(df: pl.DataFrame) -> pl.DataFrame:
     )
     df = df.with_columns(
         [
-            (pl.col("arrivalTimeEstimated") - pl.col("arrivalTimePlanned")).alias(
-                "arrivalDelay"
-            ),
-            (pl.col("departureTimeEstimated") - pl.col("departureTimePlanned")).alias(
-                "departureDelay"
-            ),
+            (pl.col("arrivalTimeEstimated") - pl.col("arrivalTimePlanned"))
+            .dt.seconds()
+            .alias("arrivalDelay"),
+            (pl.col("departureTimeEstimated") - pl.col("departureTimePlanned"))
+            .dt.seconds()
+            .alias("departureDelay"),
+        ]
+    )
+    df = df.with_columns(
+        [
+            pl.col("arrivalDelay").fill_null(strategy="zero"),
+            pl.col("departureDelay").fill_null(strategy="zero"),
+        ]
+    )
+    df = df.with_columns(
+        [
+            pl.when(pl.col("departureDelay") > pl.col("arrivalDelay"))
+            .then(pl.col("departureDelay"))
+            .otherwise(pl.col("arrivalDelay"))
+            .alias("delay"),
         ]
     )
     return df
