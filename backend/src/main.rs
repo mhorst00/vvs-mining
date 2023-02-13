@@ -1,5 +1,5 @@
 use axum::{
-    extract::{Path, Query, State},
+    extract::{Query, State},
     http::StatusCode,
     routing::get,
     Json, Router,
@@ -25,7 +25,6 @@ struct Config {
 struct StationDelay {
     name: String,
     train: String,
-    time: String,
     avg_delay: f32,
 }
 
@@ -34,8 +33,19 @@ struct RequestDate {
     date: String,
 }
 
+#[derive(Deserialize)]
+struct RequestTimeFrame {
+    lower_limit: String,
+    upper_limit: String,
+}
+
 #[derive(OpenApi)]
-#[openapi(paths(using_connection_pool_extractor))]
+#[openapi(paths(
+    using_connection_pool_extractor,
+    get_station_delays,
+    get_station_delays_date,
+    get_station_delays_timeframe
+))]
 struct ApiDoc;
 
 #[tokio::main]
@@ -63,8 +73,10 @@ async fn main() {
     let app = Router::new()
         .route("/", get(using_connection_pool_extractor))
         .route("/stations", get(get_station_delays))
+        .route("/stations/date", get(get_station_delays_date))
+        .route("/stations/timeframe", get(get_station_delays_timeframe))
         .with_state(pool)
-        .merge(SwaggerUi::new("/docs").url("/api-doc/openapi.json", ApiDoc::openapi()));
+        .merge(SwaggerUi::new("/docs").url("/docs/openapi.json", ApiDoc::openapi()));
     // run it with hyper
     let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
     tracing::debug!("listening on {}", addr);
@@ -97,18 +109,59 @@ async fn using_connection_pool_extractor(
     Ok(two.to_string())
 }
 
-#[axum_macros::debug_handler]
+#[utoipa::path(
+    get,
+    path = "/stations",
+    responses(
+        (status = 200, description = "Returns delay average of all trips stored in database")
+        )
+    )]
 async fn get_station_delays(
     State(pool): State<ConnectionPool>,
-    request_date: Option<Query<RequestDate>>,
+) -> Result<Json<Vec<StationDelay>>, (StatusCode, String)> {
+    let conn = pool.get().await.map_err(internal_error)?;
+    let query_string = "select name, transportation_name, avg(delay)::real 
+            from station_delay 
+            group by name, transportation_name;";
+
+    let rows = conn
+        .query(query_string, &[])
+        .await
+        .map_err(internal_error)?;
+
+    let mut result = vec![];
+    for row in rows {
+        let x = StationDelay {
+            name: row.try_get(0).map_err(internal_error)?,
+            train: row.try_get(1).map_err(internal_error)?,
+            avg_delay: row.try_get(2).map_err(internal_error)?,
+        };
+        result.push(x);
+    }
+    Ok(Json(result))
+}
+
+#[utoipa::path(
+    get,
+    path = "/stations/date",
+    responses(
+        (status = 200, description = "Returns delay averages for given day")
+        ),
+    params(("date" = String, Query, description = "Date string like YYYY-MM-DD"))
+    )]
+async fn get_station_delays_date(
+    State(pool): State<ConnectionPool>,
+    request_date: Query<RequestDate>,
 ) -> Result<Json<Vec<StationDelay>>, (StatusCode, String)> {
     let conn = pool.get().await.map_err(internal_error)?;
 
-    // ToDo: Use Durations instead of days if needed
-    let query_string = match request_date {
-        Some(request_date) => format!("select name, transportation_name, avg(delay)::real from station_delay where departureTimePlanned::date = '{}' group by name, transportation_name;", request_date.date),
-        None => "select name, transportation_name, avg(delay)::real from station_delay group by name, transportation_name;".to_string(),
-    };
+    let query_string = format!(
+        "select name, transportation_name, avg(delay)::real 
+        from station_delay 
+        where departureTimePlanned::date = '{}' 
+        group by name, transportation_name;",
+        request_date.date
+    );
 
     let rows = conn
         .query(&query_string, &[])
@@ -127,6 +180,48 @@ async fn get_station_delays(
     Ok(Json(result))
 }
 
+#[utoipa::path(
+    get,
+    path = "/stations/timeframe",
+    responses(
+        (status = 200, description = "Returns delay averages in given timeframe")
+        ),
+    params(("lower_limit" = String, Query, description = "Timestamp string like 'YYYY-MM-DD hh:mm:ss'"),
+    ("upper_limit" = String, Query, description = "Timestamp string like 'YYYY-MM-DD hh:mm:ss'"))
+    )]
+async fn get_station_delays_timeframe(
+    State(pool): State<ConnectionPool>,
+    request_frame: Query<RequestTimeFrame>,
+) -> Result<Json<Vec<StationDelay>>, (StatusCode, String)> {
+    let conn = pool.get().await.map_err(internal_error)?;
+
+    let query_string = format!(
+        "select tmp.name, tmp.transportation_name, avg(tmp.delay)::real 
+        from (
+            select * 
+            from station_delay
+            where departureTimePlanned > '{0}' and departureTimePlanned <= '{1}'
+            ) as tmp
+        group by name, transportation_name;",
+        request_frame.lower_limit, request_frame.upper_limit
+    );
+
+    let rows = conn
+        .query(&query_string, &[])
+        .await
+        .map_err(internal_error)?;
+
+    let mut result = vec![];
+    for row in rows {
+        let x = StationDelay {
+            name: row.try_get(0).map_err(internal_error)?,
+            train: row.try_get(1).map_err(internal_error)?,
+            avg_delay: row.try_get(2).map_err(internal_error)?,
+        };
+        result.push(x);
+    }
+    Ok(Json(result))
+}
 /// Utility function for mapping any error into a `500 Internal Server Error`
 /// response.
 fn internal_error<E>(err: E) -> (StatusCode, String)
