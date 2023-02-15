@@ -11,6 +11,18 @@
   import stops from "../haltestellen.json";
   let chosenStation: String[] = [];
   let chosenTrain: String[] = [];
+
+  /*   interface CustomFilter {
+    name: String[];
+    transportation_name: String[];
+  } */
+
+  /*   interface SourceItem {
+    name: String;
+    transportation_name: String;
+    content: String;
+  } */
+
   const sourceBody = [
     {
       name: "Backnang",
