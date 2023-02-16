@@ -88,21 +88,23 @@ def read_db_to_df(mode: Mode) -> pl.DataFrame:
         SELECT
         stops.name, legs.transportation_name,
         legs.transportation_properties_trainNumber,
-                hints.content
+        hints.content, stops.arrivalTimePlanned, stops.departureTimePlanned
         FROM trips
         INNER JOIN legs
         ON trips.data_id=legs.data_trip_id
         INNER JOIN stops
         on legs.data_id=stops.data_leg_id
-                INNER JOIN hints
-                on legs.data_id=hints.data_leg_id
-                WHERE hints.type like("%incident%")
-                GROUP BY legs.transportation_properties_trainNumber, stops.name
+        INNER JOIN hints
+        on legs.data_id=hints.data_leg_id
+        WHERE hints.type like("%incident%")
+        GROUP BY legs.transportation_properties_trainNumber, stops.name
         """
     elif mode is Mode.STATION_INFO:
         query = """
-        SELECT tmp.data_leg_id, tmp.id, stops.name, tmp.type, tmp.urlText, tmp.content
-        FROM (SELECT data_leg_id,id, type, urlText, content FROM infos GROUP BY id) as tmp
+        SELECT tmp.data_leg_id, tmp.id, stops.name, tmp.type, tmp.urlText, tmp.content,
+        stops.arrivalTimePlanned, stops.departureTimePlanned
+        FROM (SELECT data_leg_id,id, type, urlText, content FROM infos GROUP BY id)
+        as tmp
         INNER JOIN stops ON tmp.data_leg_id = stops.data_leg_id
         WHERE tmp.content LIKE ("%" || stops.name || "%")
         """
@@ -157,7 +159,8 @@ def create_psql_table(mode: Mode, c):
                         name text,
                         transportation_name text,
                         transportation_properties_trainNumber integer,
-                        content text
+                        content text,
+                        date timestamp
                         )"""
         )
         c.commit()
@@ -169,7 +172,8 @@ def create_psql_table(mode: Mode, c):
                         name text,
                         type text,
                         urlText text,
-                        content text
+                        content text,
+                        date timestamp
                         )"""
         )
         c.commit()
@@ -207,6 +211,22 @@ def calculate_delays(df: pl.DataFrame) -> pl.DataFrame:
     return df
 
 
+def calulate_date(df: pl.DataFrame, file_name: str) -> pl.DataFrame:
+    date = file_name.removesuffix(".db.zst")
+    df = df.with_columns(
+        [
+            pl.when(pl.col("departureTimePlanned") > pl.col("arrivalTimePlanned"))
+            .then(pl.col("departureTimePlanned"))
+            .otherwise(pl.col("arrivalTimePlanned"))
+            .alias("date"),
+        ]
+    )
+    df = df.with_columns(pl.col("date").fill_null(pl.lit(date)))
+    df = df.drop("departureTimePlanned")
+    df = df.drop("arrivalTimePlanned")
+    return df
+
+
 if __name__ == "__main__":
     args = parser.parse_args()
     run_mode = Mode[args.mode]
@@ -223,4 +243,6 @@ if __name__ == "__main__":
         print("Calculating and filtering...")
         if run_mode is Mode.STATION_DELAY:
             df = calculate_delays(df)
+        if run_mode is not Mode.STATION_DELAY:
+            df = calulate_date(df, elem)
         write_df_to_db(run_mode, df)
