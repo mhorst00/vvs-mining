@@ -35,6 +35,7 @@ def get_trips_with_retries(
 def get_all_trips_from_station(start: str, stations: list[str], time: datetime):
     results = []
     session = requests.Session()
+    session.proxies.update(utils.get_random_proxy())
     for destination in stations:
         if start is not destination:
             try:
@@ -105,6 +106,7 @@ if __name__ == "__main__":
     discord_logging.info("Starting import")
     curr_time = datetime.now()
     stations = utils.read_station_ids_csv("vvs_sbahn_haltestellen_2022.csv")
+    utils.get_proxy_list()
     try:
         trips = get_all_trips(stations, curr_time)
         tripCount = len(trips)
