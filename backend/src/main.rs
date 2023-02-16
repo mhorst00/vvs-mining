@@ -101,7 +101,7 @@ async fn main() {
         .layer(cors)
         .merge(SwaggerUi::new("/docs").url("/docs/openapi.json", ApiDoc::openapi()));
     // run it with hyper
-    let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
+    let addr = SocketAddr::from(([0, 0, 0, 0], 3000));
     tracing::debug!("listening on http://{}", addr);
     axum::Server::bind(&addr)
         .serve(app.into_make_service())
