@@ -48,6 +48,6 @@
 
 <div class="px-4 py-4">
   <hr class="pb-2" />
-  <h2 class="px-4 py-4">Hier könnten Ihre Verspätungs Infos stehen</h2>
+  <h2 class="pr-4 py-4">Hier könnten Ihre Verspätungs Infos stehen</h2>
   <Table source={tableSimple} />
 </div>

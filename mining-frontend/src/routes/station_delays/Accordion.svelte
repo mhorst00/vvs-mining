@@ -76,21 +76,21 @@
               class="md:max-w-lg"
               bind:group={chosenTimeSetting}
               name="lines"
-              value="lines">Alle Informationen anzeigen</ListBoxItem
+              value="lines">Alle Verspätungen anzeigen</ListBoxItem
             >
             <ListBoxItem
               class="md:max-w-lg"
               bind:group={chosenTimeSetting}
               name="lines/date"
               value="lines/date"
-              >Alle Informationen an einem Tag anzeigen</ListBoxItem
+              >Alle Verspätungen an einem Tag anzeigen</ListBoxItem
             >
             <ListBoxItem
               class="md:max-w-lg"
               bind:group={chosenTimeSetting}
               name="lines/timeframe"
               value="lines/timeframe"
-              >Alle Informationen in einem Zeitraum anzeigen</ListBoxItem
+              >Alle Verspätungen in einem Zeitraum anzeigen</ListBoxItem
             >
           </ListBox>
           {#if chosenTimeSetting == "lines/date"}

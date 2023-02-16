@@ -19,30 +19,6 @@
   <AccordionItem closed>
     <svelte:fragment slot="summary"><h3>Filter</h3></svelte:fragment>
     <svelte:fragment slot="content">
-      <!-- Choose Stop -->
-      <AccordionItem>
-        <svelte:fragment slot="lead"><h5>Haltestelle</h5></svelte:fragment>
-        <svelte:fragment slot="summary"
-          >Ein oder mehrere Haltestellen auswählen</svelte:fragment
-        >
-        <svelte:fragment slot="content">
-          <div
-            use:tooltip={{
-              content:
-                "Nur gültige Haltestellen mit korrekter Groß-/Kleinschreibung",
-              position: "bottom",
-            }}
-          >
-            <InputChip
-              list="stopsDatalist"
-              bind:value={chosenStation}
-              name="chips"
-              whitelist={stops}
-              allowUpperCase={true}
-            />
-          </div>
-        </svelte:fragment>
-      </AccordionItem>
       <!-- Choose Train name -->
       <AccordionItem>
         <svelte:fragment slot="lead"><h5>Zugname</h5></svelte:fragment>
@@ -76,21 +52,21 @@
               class="md:max-w-lg"
               bind:group={chosenTimeSetting}
               name="lines"
-              value="lines">Alle Informationen anzeigen</ListBoxItem
+              value="lines">Alle Verspätungen anzeigen</ListBoxItem
             >
             <ListBoxItem
               class="md:max-w-lg"
               bind:group={chosenTimeSetting}
               name="lines/date"
               value="lines/date"
-              >Alle Informationen an einem Tag anzeigen</ListBoxItem
+              >Alle Verspätungen an einem Tag anzeigen</ListBoxItem
             >
             <ListBoxItem
               class="md:max-w-lg"
               bind:group={chosenTimeSetting}
               name="lines/timeframe"
               value="lines/timeframe"
-              >Alle Informationen in einem Zeitraum anzeigen</ListBoxItem
+              >Alle Verspätungen in einem Zeitraum anzeigen</ListBoxItem
             >
           </ListBox>
           {#if chosenTimeSetting == "lines/date"}
