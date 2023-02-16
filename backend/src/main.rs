@@ -34,6 +34,12 @@ struct StationDelay {
     avg_delay: f32,
 }
 
+#[derive(Serialize)]
+struct JsonError {
+    status: String,
+    message: String,
+}
+
 #[derive(Deserialize)]
 struct RequestDate {
     date: String,
@@ -108,7 +114,7 @@ type ConnectionPool = Pool<PostgresConnectionManager<NoTls>>;
 #[axum_macros::debug_handler]
 async fn get_line_delays(
     State(pool): State<ConnectionPool>,
-) -> Result<Json<Vec<LineDelay>>, (StatusCode, String)> {
+) -> Result<Json<Vec<LineDelay>>, Json<JsonError>> {
     let conn = pool.get().await.map_err(internal_error)?;
     let query_string = "select split_part(transportation_name, ' ', 2), avg(delay)::real
                         from station_delay
@@ -141,7 +147,7 @@ async fn get_line_delays(
 async fn get_line_delays_date(
     State(pool): State<ConnectionPool>,
     request_date: Query<RequestDate>,
-) -> Result<Json<Vec<LineDelay>>, (StatusCode, String)> {
+) -> Result<Json<Vec<LineDelay>>, Json<JsonError>> {
     let conn = pool.get().await.map_err(internal_error)?;
     let query_string = format!(
         "select split_part(transportation_name, ' ', 2), avg(delay)::real
@@ -179,7 +185,7 @@ async fn get_line_delays_date(
 async fn get_line_delays_timeframe(
     State(pool): State<ConnectionPool>,
     request_frame: Query<RequestTimeFrame>,
-) -> Result<Json<Vec<LineDelay>>, (StatusCode, String)> {
+) -> Result<Json<Vec<LineDelay>>, Json<JsonError>> {
     let conn = pool.get().await.map_err(internal_error)?;
     let query_string = format!(
         "select split_part(transportation_name, ' ', 2), avg(delay)::real
@@ -214,7 +220,7 @@ async fn get_line_delays_timeframe(
     )]
 async fn get_station_delays(
     State(pool): State<ConnectionPool>,
-) -> Result<Json<Vec<StationDelay>>, (StatusCode, String)> {
+) -> Result<Json<Vec<StationDelay>>, Json<JsonError>> {
     let conn = pool.get().await.map_err(internal_error)?;
     let query_string = "select name, split_part(transportation_name, ' ', 2), avg(delay)::real 
             from station_delay 
@@ -248,7 +254,7 @@ async fn get_station_delays(
 async fn get_station_delays_date(
     State(pool): State<ConnectionPool>,
     request_date: Query<RequestDate>,
-) -> Result<Json<Vec<StationDelay>>, (StatusCode, String)> {
+) -> Result<Json<Vec<StationDelay>>, Json<JsonError>> {
     let conn = pool.get().await.map_err(internal_error)?;
 
     let query_string = format!(
@@ -288,7 +294,7 @@ async fn get_station_delays_date(
 async fn get_station_delays_timeframe(
     State(pool): State<ConnectionPool>,
     request_frame: Query<RequestTimeFrame>,
-) -> Result<Json<Vec<StationDelay>>, (StatusCode, String)> {
+) -> Result<Json<Vec<StationDelay>>, Json<JsonError>> {
     let conn = pool.get().await.map_err(internal_error)?;
 
     let query_string = format!(
@@ -318,9 +324,13 @@ async fn get_station_delays_timeframe(
 
 /// Utility function for mapping any error into a `500 Internal Server Error`
 /// response.
-fn internal_error<E>(err: E) -> (StatusCode, String)
+fn internal_error<E>(err: E) -> Json<JsonError>
 where
     E: std::error::Error,
 {
-    (StatusCode::INTERNAL_SERVER_ERROR, err.to_string())
+    let error = JsonError {
+        status: StatusCode::INTERNAL_SERVER_ERROR.to_string(),
+        message: err.to_string(),
+    };
+    Json(error)
 }
