@@ -164,6 +164,22 @@ def calculate_delays(df: pl.DataFrame) -> pl.DataFrame:
     return df
 
 
+def calulate_date(df: pl.DataFrame, file_name: str) -> pl.DataFrame:
+    date = file_name.removesuffix(".db.zst")
+    df = df.with_columns(
+        [
+            pl.when(pl.col("departureTimePlanned") > pl.col("arrivalTimePlanned"))
+            .then(pl.col("departureTimePlanned"))
+            .otherwise(pl.col("arrivalTimePlanned"))
+            .alias("date"),
+        ]
+    )
+    df = df.with_columns(pl.col("date").fill_null(pl.lit(date)))
+    df = df.drop("departureTimePlanned")
+    df = df.drop("arrivalTimePlanned")
+    return df
+
+
 if __name__ == "__main__":
     args = parser.parse_args()
     run_mode = Mode[args.mode]
