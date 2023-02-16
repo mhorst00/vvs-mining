@@ -1,6 +1,6 @@
 use axum::{
     extract::{Query, State},
-    http::StatusCode,
+    http::{Method, StatusCode},
     routing::get,
     Json, Router,
 };
@@ -9,6 +9,7 @@ use bb8_postgres::PostgresConnectionManager;
 use serde::{Deserialize, Serialize};
 use std::net::SocketAddr;
 use tokio_postgres::NoTls;
+use tower_http::cors::{Any, CorsLayer};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 use utoipa::OpenApi;
 use utoipa_swagger_ui::SwaggerUi;
@@ -75,6 +76,11 @@ async fn main() {
     // get env config
     let config = envy::from_env::<Config>().expect("Please provide all env vars");
 
+    // setup cors
+    let cors = CorsLayer::new()
+        .allow_methods(Method::GET)
+        .allow_origin(Any);
+
     // set up connection pool
     let psql_url = format!(
         "host={0} user={1} password={2} dbname={3}",
@@ -92,10 +98,11 @@ async fn main() {
         .route("/lines/date", get(get_line_delays_date))
         .route("/lines/timeframe", get(get_line_delays_timeframe))
         .with_state(pool)
+        .layer(cors)
         .merge(SwaggerUi::new("/docs").url("/docs/openapi.json", ApiDoc::openapi()));
     // run it with hyper
     let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
-    tracing::debug!("listening on {}", addr);
+    tracing::debug!("listening on http://{}", addr);
     axum::Server::bind(&addr)
         .serve(app.into_make_service())
         .await
