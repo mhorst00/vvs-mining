@@ -1,11 +1,7 @@
 <script lang="ts">
-  import {
-    Table,
-    tableMapperValues,
-    type TableSource,
-  } from "@skeletonlabs/skeleton";
   import Accordion from "./Accordion.svelte";
-  const sourceBody = [
+  import TableWithPaginator from "../TableWithPaginator.svelte";
+  const source = [
     {
       name: "Altbach",
       type: "stopInfo",
@@ -21,20 +17,20 @@
         "Am Bahnhof Universität ist der Aufzug zu Gleis 2 (S-Bahn) bis auf Weiteres außer Betrieb.",
     },
   ];
-
-  const tableSimple: TableSource = {
-    // A list of heading labels.
-    head: ["Haltestelle", "Typ", "Kurzmeldung", "Vollständige Meldung"],
-    // The data visibly shown in your table body UI.
-    body: tableMapperValues(sourceBody, ["name", "type", "urltext", "content"]),
-    // Optional: The data returned when interactive is enabled and a row is clicked.
-    meta: tableMapperValues(sourceBody, [
-      "Haltestelle",
-      "Typ",
-      "Kurzmeldung",
-      "Vollständige Meldung",
-    ]),
-  };
+  let sourceBody: string[][] = source.map(
+    (x: { name: string; type: string; urltext: string; content: string }) => [
+      x.name,
+      x.type,
+      x.urltext,
+      x.content,
+    ]
+  );
+  let sourceHeaders: string[] = [
+    "Haltestelle",
+    "Typ",
+    "Kurzmeldung",
+    "Vollständige Meldung",
+  ];
 </script>
 
 <Accordion />
@@ -42,5 +38,5 @@
 <div class="px-4 py-4">
   <hr class="pb-2" />
   <h2 class="px-4 py-4">Hier könnten Ihre Haltestellen Infos stehen</h2>
-  <Table source={tableSimple} interactive={true} />
+  <TableWithPaginator {sourceHeaders} {sourceBody} />
 </div>
