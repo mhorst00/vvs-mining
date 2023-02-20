@@ -1,3 +1,6 @@
+mod models;
+use models::*;
+
 use axum::{
     extract::{Query, State},
     http::{Method, StatusCode},
@@ -6,7 +9,6 @@ use axum::{
 };
 use bb8::Pool;
 use bb8_postgres::PostgresConnectionManager;
-use serde::{Deserialize, Serialize};
 use std::net::SocketAddr;
 use tokio::signal;
 use tokio_postgres::NoTls;
@@ -15,54 +17,21 @@ use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 use utoipa::OpenApi;
 use utoipa_swagger_ui::SwaggerUi;
 
-#[derive(Deserialize, Debug)]
-struct Config {
-    dbhost: String,
-    dbuser: String,
-    dbpass: String,
-    dbname: String,
-}
-
-#[derive(Serialize)]
-struct LineDelay {
-    line: String,
-    avg_delay: f32,
-}
-
-#[derive(Serialize)]
-struct StationDelay {
-    name: String,
-    train: String,
-    avg_delay: f32,
-}
-
-#[derive(Serialize)]
-struct JsonError {
-    status: String,
-    message: String,
-}
-
-#[derive(Deserialize)]
-struct RequestDate {
-    date: String,
-}
-
-#[derive(Deserialize)]
-struct RequestTimeFrame {
-    lower_limit: String,
-    upper_limit: String,
-}
-
 #[derive(OpenApi)]
-#[openapi(paths(
-    get_station_delays,
-    get_station_delays_date,
-    get_station_delays_timeframe,
-    get_line_delays,
-    get_line_delays_date,
-    get_line_delays_timeframe
-))]
+#[openapi(
+    paths(
+        get_station_delays,
+        get_station_delays_date,
+        get_station_delays_timeframe,
+        get_line_delays,
+        get_line_delays_date,
+        get_line_delays_timeframe
+    ),
+    components(schemas(StationDelay, LineDelay, JsonError))
+)]
 struct ApiDoc;
+
+type ConnectionPool = Pool<PostgresConnectionManager<NoTls>>;
 
 #[tokio::main]
 async fn main() {
@@ -137,13 +106,14 @@ async fn shutdown_signal() {
     println!("signal received, starting graceful shutdown");
 }
 
-type ConnectionPool = Pool<PostgresConnectionManager<NoTls>>;
-
 #[utoipa::path(
     get,
     path = "/lines",
     responses(
-        (status = 200, description = "Get average delay of all lines in database")
+        (status = 200, description = "Get average delay of all lines in database",
+         body = [LineDelay], content_type = "application/json"),
+        (status = 500, description = "Server error",
+         body = JsonError, content_type = "application/json")
         )
     )]
 #[axum_macros::debug_handler]
@@ -175,7 +145,10 @@ async fn get_line_delays(
     get,
     path = "/lines/date",
     responses(
-        (status = 200, description = "Get average delay of all lines on specific date in database")
+        (status = 200, description = "Get average delay of all lines on specific date in database",
+         body = [LineDelay], content_type = "application/json"),
+        (status = 500, description = "Server error",
+         body = JsonError, content_type = "application/json")
         ),
     params(("date" = String, Query, description = "Date string like YYYY-MM-DD"))
     )]
@@ -212,11 +185,16 @@ async fn get_line_delays_date(
     get,
     path = "/lines/timeframe",
     responses(
-        (status = 200, description = "Get average delay of all lines in specific timeframe in database")
-        ),
-    params(("lower_limit" = String, Query, description = "Timestamp string like 'YYYY-MM-DD hh:mm:ss'"),
-    ("upper_limit" = String, Query, description = "Timestamp string like 'YYYY-MM-DD hh:mm:ss'"))
-    )]
+        (status = 200, description = "Get average delay of all lines in specific timeframe in database",
+         body = [LineDelay], content_type = "application/json"),
+        (status = 500, description = "Server error",
+         body = JsonError, content_type = "application/json")
+    ),
+    params(
+        ("lower_limit" = String, Query, description = "Timestamp string like 'YYYY-MM-DD hh:mm:ss'"),
+        ("upper_limit" = String, Query, description = "Timestamp string like 'YYYY-MM-DD hh:mm:ss'")
+    )
+)]
 async fn get_line_delays_timeframe(
     State(pool): State<ConnectionPool>,
     request_frame: Query<RequestTimeFrame>,
@@ -250,7 +228,10 @@ async fn get_line_delays_timeframe(
     get,
     path = "/stations",
     responses(
-        (status = 200, description = "Returns delay average of all trains at all stations stored in database")
+        (status = 200, description = "Returns delay average of all trains at all stations stored in database", 
+         body = [LineDelay], content_type = "application/json"),
+        (status = 500, description = "Server error",
+         body = JsonError, content_type = "application/json")
         )
     )]
 async fn get_station_delays(
@@ -282,7 +263,10 @@ async fn get_station_delays(
     get,
     path = "/stations/date",
     responses(
-        (status = 200, description = "Returns delay averages for given day")
+        (status = 200, description = "Returns delay averages for given day",
+         body = [StationDelay], content_type = "application/json"),
+        (status = 500, description = "Server error",
+         body = JsonError, content_type = "application/json")
         ),
     params(("date" = String, Query, description = "Date string like YYYY-MM-DD"))
     )]
@@ -321,7 +305,10 @@ async fn get_station_delays_date(
     get,
     path = "/stations/timeframe",
     responses(
-        (status = 200, description = "Returns delay averages in given timeframe")
+        (status = 200, description = "Returns delay averages in given timeframe",
+         body = [StationDelay], content_type = "application/json"), 
+        (status = 500, description = "Server error",
+         body = JsonError, content_type = "application/json")
         ),
     params(("lower_limit" = String, Query, description = "Timestamp string like 'YYYY-MM-DD hh:mm:ss'"),
     ("upper_limit" = String, Query, description = "Timestamp string like 'YYYY-MM-DD hh:mm:ss'"))
