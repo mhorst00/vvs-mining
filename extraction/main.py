@@ -165,7 +165,8 @@ def calculate_delays(df: pl.DataFrame) -> pl.DataFrame:
 
 
 def calulate_date(df: pl.DataFrame, file_name: str) -> pl.DataFrame:
-    date = file_name.removesuffix(".db.zst")
+    full_path = pathlib.PurePath(file_name).stem
+    date = full_path.removesuffix(".db")
     df = df.with_columns(
         [
             pl.when(pl.col("departureTimePlanned") > pl.col("arrivalTimePlanned"))
