@@ -25,9 +25,12 @@ use utoipa_swagger_ui::SwaggerUi;
         get_station_delays_timeframe,
         get_line_delays,
         get_line_delays_date,
-        get_line_delays_timeframe
+        get_line_delays_timeframe,
+        get_station_infos,
+        get_station_infos_date,
+        get_station_infos_timeframe
     ),
-    components(schemas(StationDelay, LineDelay, JsonError))
+    components(schemas(StationDelay, StationInfo, LineDelay, JsonError))
 )]
 struct ApiDoc;
 
@@ -67,6 +70,9 @@ async fn main() {
         .route("/lines", get(get_line_delays))
         .route("/lines/date", get(get_line_delays_date))
         .route("/lines/timeframe", get(get_line_delays_timeframe))
+        .route("/infos", get(get_station_infos))
+        .route("/infos/date", get(get_station_infos_date))
+        .route("/infos/timeframe", get(get_station_infos_timeframe))
         .with_state(pool)
         .layer(cors)
         .merge(SwaggerUi::new("/docs").url("/docs/openapi.json", ApiDoc::openapi()));
@@ -344,6 +350,123 @@ async fn get_station_delays_timeframe(
     Ok(Json(result))
 }
 
+#[utoipa::path(
+    get,
+    path = "/infos",
+    responses(
+        (status = 200, description = "Returns all information about all stations stored in database", 
+         body = [StationInfo], content_type = "application/json"),
+        (status = 500, description = "Server error",
+         body = JsonError, content_type = "application/json")
+        )
+    )]
+async fn get_station_infos(
+    State(pool): State<ConnectionPool>,
+) -> Result<Json<Vec<StationInfo>>, Json<JsonError>> {
+    let conn = pool.get().await.map_err(internal_error)?;
+    let query_string = "select name, urlText, content, date::Date from station_info group by (name, urlText, content, date::date);";
+
+    let rows = conn
+        .query(query_string, &[])
+        .await
+        .map_err(internal_error)?;
+
+    let mut result = vec![];
+    for row in rows {
+        let x = StationInfo {
+            name: row.try_get(0).map_err(internal_error)?,
+            short: row.try_get(1).map_err(internal_error)?,
+            long: row.try_get(2).map_err(internal_error)?,
+            date: row.try_get(3).map_err(internal_error)?,
+        };
+        result.push(x);
+    }
+    Ok(Json(result))
+}
+
+#[utoipa::path(
+    get,
+    path = "/infos/date",
+    responses(
+        (status = 200, description = "Returns all information about all stations at given date stored in database", 
+         body = [StationInfo], content_type = "application/json"),
+        (status = 500, description = "Server error",
+         body = JsonError, content_type = "application/json")
+        ),
+    params(("date" = String, Query, description = "Date string like YYYY-MM-DD"))
+    )]
+async fn get_station_infos_date(
+    State(pool): State<ConnectionPool>,
+    request_date: Query<RequestDate>,
+) -> Result<Json<Vec<StationInfo>>, Json<JsonError>> {
+    let conn = pool.get().await.map_err(internal_error)?;
+    let query_string = format!(
+        "select name, urlText, content, date::Date from station_info
+        where date::date = '{}'
+        group by (name, urlText, content, date::date);",
+        request_date.date
+    );
+
+    let rows = conn
+        .query(&query_string, &[])
+        .await
+        .map_err(internal_error)?;
+
+    let mut result = vec![];
+    for row in rows {
+        let x = StationInfo {
+            name: row.try_get(0).map_err(internal_error)?,
+            short: row.try_get(1).map_err(internal_error)?,
+            long: row.try_get(2).map_err(internal_error)?,
+            date: row.try_get(3).map_err(internal_error)?,
+        };
+        result.push(x);
+    }
+    Ok(Json(result))
+}
+
+#[utoipa::path(
+    get,
+    path = "/infos/timeframe",
+    responses(
+        (status = 200, description = "Returns all information about all stations at given date stored in database", 
+         body = [StationInfo], content_type = "application/json"),
+        (status = 500, description = "Server error",
+         body = JsonError, content_type = "application/json")
+        ),
+    params(("lower_limit" = String, Query, description = "Timestamp string like 'YYYY-MM-DD hh:mm:ss'"),
+        ("upper_limit" = String, Query, description = "Timestamp string like 'YYYY-MM-DD hh:mm:ss'")
+        )
+    )]
+async fn get_station_infos_timeframe(
+    State(pool): State<ConnectionPool>,
+    request_timeframe: Query<RequestTimeFrame>,
+) -> Result<Json<Vec<StationInfo>>, Json<JsonError>> {
+    let conn = pool.get().await.map_err(internal_error)?;
+    let query_string = format!(
+        "select name, urlText, content, date::Date from station_info
+        where date::date > '{0}' and date::date <= '{1}'
+        group by (name, urlText, content, date::date);",
+        request_timeframe.lower_limit, request_timeframe.upper_limit
+    );
+
+    let rows = conn
+        .query(&query_string, &[])
+        .await
+        .map_err(internal_error)?;
+
+    let mut result = vec![];
+    for row in rows {
+        let x = StationInfo {
+            name: row.try_get(0).map_err(internal_error)?,
+            short: row.try_get(1).map_err(internal_error)?,
+            long: row.try_get(2).map_err(internal_error)?,
+            date: row.try_get(3).map_err(internal_error)?,
+        };
+        result.push(x);
+    }
+    Ok(Json(result))
+}
 /// Utility function for mapping any error into a `500 Internal Server Error`
 /// response.
 fn internal_error<E>(err: E) -> Json<JsonError>

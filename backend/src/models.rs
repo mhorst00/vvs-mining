@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use time::Date;
 use utoipa::{IntoParams, ToSchema};
 
 #[derive(Deserialize, Debug)]
@@ -20,6 +21,14 @@ pub struct StationDelay {
     pub name: String,
     pub train: String,
     pub avg_delay: f32,
+}
+
+#[derive(Serialize, ToSchema)]
+pub struct StationInfo {
+    pub name: String,
+    pub short: String,
+    pub long: String,
+    pub date: Date,
 }
 
 #[derive(Serialize, ToSchema)]
