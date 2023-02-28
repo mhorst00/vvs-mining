@@ -3,16 +3,12 @@
     Accordion,
     AccordionItem,
     InputChip,
-    ListBox,
-    ListBoxItem,
     tooltip,
   } from "@skeletonlabs/skeleton";
   import stops from "../haltestellen.json";
-  import FormDate from "./FormDate.svelte";
-  import FormTimeframe from "./FormTimeframe.svelte";
+  
   let chosenStation: String[] = [];
   let chosenTrain: String[] = [];
-  let chosenTimeSetting: string = "lines";
 </script>
 
 <Accordion class="py-4">
@@ -64,42 +60,22 @@
           </div>
         </svelte:fragment>
       </AccordionItem>
-      <!-- choose time or timeframe: -->
+      <!-- choose Date: -->
       <AccordionItem>
         <svelte:fragment slot="lead"><h5>Zeitfenster</h5></svelte:fragment>
         <svelte:fragment slot="summary"
           >Ein Datum oder ein Zeitfenster eingeben</svelte:fragment
         >
         <svelte:fragment slot="content">
-          <ListBox>
-            <ListBoxItem
-              class="md:max-w-lg"
-              bind:group={chosenTimeSetting}
-              name="lines"
-              value="lines">Alle Informationen anzeigen</ListBoxItem
+          <div class="input-group input-group-divider grid-cols-2 md:max-w-lg">
+            <input class="input" type="date" />
+            <button class="variant-filled-secondary"
+              >Informationen anzeigen</button
             >
-            <ListBoxItem
-              class="md:max-w-lg"
-              bind:group={chosenTimeSetting}
-              name="lines/date"
-              value="lines/date"
-              >Alle Informationen an einem Tag anzeigen</ListBoxItem
-            >
-            <ListBoxItem
-              class="md:max-w-lg"
-              bind:group={chosenTimeSetting}
-              name="lines/timeframe"
-              value="lines/timeframe"
-              >Alle Informationen in einem Zeitraum anzeigen</ListBoxItem
-            >
-          </ListBox>
-          {#if chosenTimeSetting == "lines/date"}
-            <FormDate />
-          {:else if chosenTimeSetting == "lines/timeframe"}
-            <FormTimeframe />
-          {/if}
+          </div>
         </svelte:fragment>
       </AccordionItem>
+      <button class="btn variant-filled-primary ml-2">Filter anwenden</button>
     </svelte:fragment>
   </AccordionItem>
 </Accordion>

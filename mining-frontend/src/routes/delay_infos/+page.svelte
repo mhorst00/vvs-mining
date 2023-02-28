@@ -2,26 +2,34 @@
   import Accordion from "./Accordion.svelte";
   import TableWithPaginator from "../TableWithPaginator.svelte";
 
-  const source = [
-    {
-      name: "Backnang",
-      transportation_name: "R-Bahn MEX19",
-      content: "Warten auf einen entgegenkommenden Zug",
-    },
-    {
-      name: "Backnang",
-      transportation_name: "R-Bahn MEX90",
-      content: "Verspätung eines vorausfahrenden Zuges",
-    },
-  ];
+  interface SourceItem {
+    name: string;
+    transportation_name: string;
+    content: string;
+  }
 
-  let sourceBody: string[][] = source.map(
-    (x: { name: string; transportation_name: string; content: string }) => [
-      x.name,
-      x.transportation_name,
-      x.content,
-    ]
-  );
+  let source: SourceItem[] = [];
+
+  export function applyFilter() {
+    source = [
+      {
+        name: "Backnang",
+        transportation_name: "R-Bahn MEX19",
+        content: "Warten auf einen entgegenkommenden Zug",
+      },
+      {
+        name: "Backnang",
+        transportation_name: "R-Bahn MEX90",
+        content: "Verspätung eines vorausfahrenden Zuges",
+      },
+    ];
+  }
+
+  let sourceBody: string[][] = source.map((x: SourceItem) => [
+    x.name,
+    x.transportation_name,
+    x.content,
+  ]);
   let sourceHeaders: string[] = ["Haltestelle", "Zugname", "Meldung"];
 </script>
 
