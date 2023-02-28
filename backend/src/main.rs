@@ -74,7 +74,7 @@ async fn main() {
         .route("/infos", get(get_station_infos))
         .route("/infos/date", get(get_station_infos_date))
         .route("/infos/timeframe", get(get_station_infos_timeframe))
-        .route("/incidents/all", get(get_all_incidents))
+        .route("/incidents", get(get_incidents))
         .with_state(pool)
         .layer(cors)
         .merge(SwaggerUi::new("/docs").url("/docs/openapi.json", ApiDoc::openapi()));
@@ -478,16 +478,21 @@ async fn get_station_infos_timeframe(
          body = [StationInfo], content_type = "application/json"),
         (status = 500, description = "Server error",
          body = JsonError, content_type = "application/json")
-        )
+        ),
+    params(("date" = String, Query, description = "Date string like 'YYYY-MM-DD'"),
+        ("line" = String, Query, description = "Line name formatted like 'S1' or 'MEX19'"))
     )]
-async fn get_all_incidents(
+async fn get_incidents(
     State(pool): State<ConnectionPool>,
+    request_date: Query<RequestDate>,
+    request_line: Query<RequestLine>,
 ) -> Result<Json<Vec<Incident>>, Json<JsonError>> {
     let conn = pool.get().await.map_err(internal_error)?;
-    let query_string = "select name, split_part(transportation_name, ' ', 2), transportation_properties_trainnumber, content, date::date from train_incident;";
-
+    let query_string = format!("select name, split_part(transportation_name, ' ', 2), transportation_properties_trainnumber, content, date::date
+                                from train_incident
+                                where date::date = '{0}' and split_part(transportation_name, ' ', 2) = '{1}';", request_date.date, request_line.line);
     let rows = conn
-        .query(query_string, &[])
+        .query(&query_string, &[])
         .await
         .map_err(internal_error)?;
 
