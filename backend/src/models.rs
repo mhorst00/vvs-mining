@@ -19,7 +19,7 @@ pub struct LineDelay {
 #[derive(Serialize, ToSchema)]
 pub struct StationDelay {
     pub name: String,
-    pub train: String,
+    pub line: String,
     pub avg_delay: f32,
 }
 
@@ -31,6 +31,14 @@ pub struct StationInfo {
     pub date: Date,
 }
 
+#[derive(Serialize, ToSchema)]
+pub struct Incident {
+    pub station: String,
+    pub line: String,
+    pub train_number: i32,
+    pub incident: String,
+    pub date: Date,
+}
 #[derive(Serialize, ToSchema)]
 pub struct JsonError {
     pub status: String,

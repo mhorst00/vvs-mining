@@ -28,7 +28,8 @@ use utoipa_swagger_ui::SwaggerUi;
         get_line_delays_timeframe,
         get_station_infos,
         get_station_infos_date,
-        get_station_infos_timeframe
+        get_station_infos_timeframe,
+        get_all_incidents,
     ),
     components(schemas(StationDelay, StationInfo, LineDelay, JsonError))
 )]
@@ -73,6 +74,7 @@ async fn main() {
         .route("/infos", get(get_station_infos))
         .route("/infos/date", get(get_station_infos_date))
         .route("/infos/timeframe", get(get_station_infos_timeframe))
+        .route("/incidents/all", get(get_all_incidents))
         .with_state(pool)
         .layer(cors)
         .merge(SwaggerUi::new("/docs").url("/docs/openapi.json", ApiDoc::openapi()));
@@ -257,7 +259,7 @@ async fn get_station_delays(
     for row in rows {
         let x = StationDelay {
             name: row.try_get(0).map_err(internal_error)?,
-            train: row.try_get(1).map_err(internal_error)?,
+            line: row.try_get(1).map_err(internal_error)?,
             avg_delay: row.try_get(2).map_err(internal_error)?,
         };
         result.push(x);
@@ -299,7 +301,7 @@ async fn get_station_delays_date(
     for row in rows {
         let x = StationDelay {
             name: row.try_get(0).map_err(internal_error)?,
-            train: row.try_get(1).map_err(internal_error)?,
+            line: row.try_get(1).map_err(internal_error)?,
             avg_delay: row.try_get(2).map_err(internal_error)?,
         };
         result.push(x);
@@ -342,7 +344,7 @@ async fn get_station_delays_timeframe(
     for row in rows {
         let x = StationDelay {
             name: row.try_get(0).map_err(internal_error)?,
-            train: row.try_get(1).map_err(internal_error)?,
+            line: row.try_get(1).map_err(internal_error)?,
             avg_delay: row.try_get(2).map_err(internal_error)?,
         };
         result.push(x);
@@ -467,6 +469,42 @@ async fn get_station_infos_timeframe(
     }
     Ok(Json(result))
 }
+
+#[utoipa::path(
+    get,
+    path = "/incidents",
+    responses(
+        (status = 200, description = "Returns all information about all stations stored in database", 
+         body = [StationInfo], content_type = "application/json"),
+        (status = 500, description = "Server error",
+         body = JsonError, content_type = "application/json")
+        )
+    )]
+async fn get_all_incidents(
+    State(pool): State<ConnectionPool>,
+) -> Result<Json<Vec<Incident>>, Json<JsonError>> {
+    let conn = pool.get().await.map_err(internal_error)?;
+    let query_string = "select name, split_part(transportation_name, ' ', 2), transportation_properties_trainnumber, content, date::date from train_incident;";
+
+    let rows = conn
+        .query(query_string, &[])
+        .await
+        .map_err(internal_error)?;
+
+    let mut result = vec![];
+    for row in rows {
+        let x = Incident {
+            station: row.try_get(0).map_err(internal_error)?,
+            line: row.try_get(1).map_err(internal_error)?,
+            train_number: row.try_get(2).map_err(internal_error)?,
+            incident: row.try_get(3).map_err(internal_error)?,
+            date: row.try_get(4).map_err(internal_error)?,
+        };
+        result.push(x);
+    }
+    Ok(Json(result))
+}
+
 /// Utility function for mapping any error into a `500 Internal Server Error`
 /// response.
 fn internal_error<E>(err: E) -> Json<JsonError>
