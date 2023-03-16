@@ -6,9 +6,13 @@
     tooltip,
   } from "@skeletonlabs/skeleton";
   import stops from "../haltestellen.json";
-  
+  import { sourceItemSource } from "../../lib/stores";
+
   let chosenStation: String[] = [];
   let chosenTrain: String[] = [];
+  let timeInput: String = "";
+
+  function applyFilter() {}
 </script>
 
 <Accordion class="py-4">
@@ -43,7 +47,7 @@
       <AccordionItem>
         <svelte:fragment slot="lead"><h5>Zugname</h5></svelte:fragment>
         <svelte:fragment slot="summary"
-          >Ein oder mehrere Züge auswählen</svelte:fragment
+          >Ein oder mehrere Züge auswählen (Erforderlich)</svelte:fragment
         >
         <svelte:fragment slot="content">
           <div
@@ -64,18 +68,17 @@
       <AccordionItem>
         <svelte:fragment slot="lead"><h5>Zeitfenster</h5></svelte:fragment>
         <svelte:fragment slot="summary"
-          >Ein Datum oder ein Zeitfenster eingeben</svelte:fragment
+          >Ein Datum eingeben (Erforderlich)</svelte:fragment
         >
         <svelte:fragment slot="content">
-          <div class="input-group input-group-divider grid-cols-2 md:max-w-lg">
-            <input class="input" type="date" />
-            <button class="variant-filled-secondary"
-              >Informationen anzeigen</button
-            >
+          <div class="input-group input-group-divider md:max-w-lg">
+            <input class="input" type="date" bind:value={timeInput} />
           </div>
         </svelte:fragment>
       </AccordionItem>
-      <button class="btn variant-filled-primary ml-2">Filter anwenden</button>
+      <button class="btn variant-filled-primary ml-2" on:click={applyFilter}
+        >Filter anwenden</button
+      >
     </svelte:fragment>
   </AccordionItem>
 </Accordion>

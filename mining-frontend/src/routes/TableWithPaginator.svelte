@@ -17,9 +17,8 @@
   function onAmountChange(e: CustomEvent): void {
     console.log("event:amount", e.detail);
   }
-
-
-  let amounts = [5, 10, 25, sourceBody.length].sort((x, y) => {
+  let amounts: number[];
+  $: amounts = [5, 10, 25, sourceBody.length].sort((x, y) => {
     if (x > y) {
       return 1;
     }
@@ -28,13 +27,13 @@
     }
     return 0;
   });
-  console.log(amounts);
-  let page = {
+  let page: PaginationSettings;
+  $: page = {
     offset: 0,
     limit: 10,
     size: sourceBody.length,
     amounts: amounts,
-  } as PaginationSettings;
+  };
 </script>
 
 <section class="card variant-glass p-4 space-y-4">

@@ -1,16 +1,23 @@
 <script lang="ts">
   import TableWithPaginator from "../TableWithPaginator.svelte";
   import Accordion from "./Accordion.svelte";
-  const source = [
-    {
-      line: "IC",
-      avg_delay: 154.2671,
-    },
-  ];
+  import { lineDelaySource } from "../../lib/stores";
+  import type { LineDelay } from "../../lib/stores";
+  /** @type {import('./$types').PageData} */
+  export let data: any;
 
-  let sourceBody: string[][] = source.map(
-    (x: { line: string; avg_delay: number }) => [x.line, x.avg_delay.toString()]
-  );
+  lineDelaySource.update((value) => (value = data.delays));
+
+  let subscribedSource: LineDelay[] = [];
+
+  lineDelaySource.subscribe((value) => {
+    subscribedSource = value;
+  });
+  let sourceBody: string[][];
+  $: sourceBody = subscribedSource.map((x: LineDelay) => [
+    x.line,
+    x.avg_delay.toString(),
+  ]);
 
   let sourceHeaders: string[] = ["Linie", "Durchschnittliche Verspätung"];
 </script>
