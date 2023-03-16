@@ -13,6 +13,10 @@
   let chosenStation: String[] = [];
   let chosenTrain: String[] = [];
   let chosenTimeSetting: string = "lines";
+
+  function isValidStop(value: string): boolean {
+    return value.includes();
+  }
 </script>
 
 <Accordion class="py-4">
@@ -39,6 +43,7 @@
               name="chips"
               whitelist={stops}
               allowUpperCase={true}
+              autocomplete="whitelist"
             />
           </div>
         </svelte:fragment>

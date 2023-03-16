@@ -1,28 +1,87 @@
 <script lang="ts">
   import TableWithPaginator from "../TableWithPaginator.svelte";
   import Accordion from "./Accordion.svelte";
-  const source = [
-    {
-      name: "Schwabstraße",
-      train: "S3",
-      avg_delay: 78.487144,
-    },
-  ];
-  let sourceHeaders = ["Haltestelle", "Linie", "Durchschnittliche Verspätung"];
+  import { Bar } from "svelte-chartjs";
+  import {
+    Chart,
+    Title,
+    Tooltip,
+    Legend,
+    BarElement,
+    CategoryScale,
+    LinearScale,
+  } from "chart.js";
+  import { RadioGroup, RadioItem } from "@skeletonlabs/skeleton";
 
-  let sourceBody: string[][] = source.map(
-    (x: { name: string; train: string; avg_delay: number }) => [
+  Chart.register(
+    Title,
+    Tooltip,
+    Legend,
+    BarElement,
+    CategoryScale,
+    LinearScale
+  );
+
+  export let data;
+  let displayTable = false;
+
+  let sourceHeaders = ["Haltestelle", "Linie", "Durchschnittliche Verspätung"];
+  let sourceBody: string[][] = data.delays.map(
+    (x: { name: string; line: string; avg_delay: number }) => [
       x.name,
-      x.train,
+      x.line,
       x.avg_delay.toString(),
     ]
   );
+
+  let chart_data = {
+    datasets: [
+      {
+        data: data.delays.map(
+          (x: { name: string; line: string; avg_delay: number }) => x.avg_delay
+        ),
+        label: "Verspätung in Sekunden",
+        backgroundColor: [
+          "rgba(255, 134,159,0.4)",
+          "rgba(98,  182, 239,0.4)",
+          "rgba(255, 218, 128,0.4)",
+          "rgba(113, 205, 205,0.4)",
+          "rgba(170, 128, 252,0.4)",
+          "rgba(255, 177, 101,0.4)",
+        ],
+        borderWidth: 2,
+        borderColor: [
+          "rgba(255, 134, 159, 1)",
+          "rgba(98,  182, 239, 1)",
+          "rgba(255, 218, 128, 1)",
+          "rgba(113, 205, 205, 1)",
+          "rgba(170, 128, 252, 1)",
+          "rgba(255, 177, 101, 1)",
+        ],
+      },
+    ],
+    labels: data.delays.map(
+      (x: { name: string; line: string; avg_delay: number }) =>
+        `${x.name} ${x.line}`
+    ),
+  };
 </script>
 
 <Accordion />
-
-<div class="px-4 py-4">
-  <hr class="pb-2" />
-  <h2 class="pr-4 py-4">Hier könnten Ihre Stationen stehen</h2>
+<RadioGroup
+  active="variant-filled-primary"
+  hover="hover:variant-soft-primary"
+  class="m-2"
+>
+  <RadioItem bind:group={displayTable} name="diagramm" value={false}
+    >Diagramm</RadioItem
+  >
+  <RadioItem bind:group={displayTable} name="tabelle" value={true}
+    >Tabelle</RadioItem
+  >
+</RadioGroup>
+{#if displayTable}
   <TableWithPaginator {sourceHeaders} {sourceBody} />
-</div>
+{:else}
+  <Bar data={chart_data} options={{ responsive: true }} />
+{/if}
