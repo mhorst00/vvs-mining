@@ -2,20 +2,20 @@
   import Accordion from "./Accordion.svelte";
   import TableWithPaginator from "../TableWithPaginator.svelte";
 
-  import { sourceItemSource } from "../../lib/stores";
-  import type { SourceItem } from "../../lib/stores";
+  import { incidentSource } from "$lib/stores";
+  import type { IncidentItem } from "$lib/stores";
 
-  let subscribedSource: SourceItem[];
+  let subscribedSource: IncidentItem[];
 
-  sourceItemSource.subscribe((value) => {
+  incidentSource.subscribe((value) => {
     subscribedSource = value;
   });
   let sourceBody: string[][];
   let sourceHeaders: string[] = ["Haltestelle", "Zugname", "Meldung"];
-  $: sourceBody = subscribedSource.map((x: SourceItem) => [
-    x.name,
-    x.transportation_name,
-    x.content,
+  $: sourceBody = subscribedSource.map((x: IncidentItem) => [
+    x.station,
+    x.line,
+    x.incident,
   ]);
 </script>
 
@@ -23,7 +23,7 @@
 
 <div class="px-4 py-4">
   <hr class="pb-2" />
-  <h2 class="pr-4 py-4">Hier könnten Ihre Verspätungs Infos stehen</h2>
+  <h2 class="pr-4 py-4">Verspätungs Infos:</h2>
 
   <TableWithPaginator {sourceHeaders} {sourceBody} />
 </div>

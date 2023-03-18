@@ -1,10 +1,10 @@
 import { writable } from "svelte/store";
-export interface SourceItem {
-    name: string;
-    transportation_name: string;
-    content: string;
+export interface IncidentItem {
+    station: string;
+    line: string;
+    incident: string;
   }
-export  const sourceItemSource = writable<SourceItem[]>([]);
+export  const incidentSource = writable<IncidentItem[]>([]);
 
 
 export interface  LineDelay{
@@ -12,3 +12,10 @@ export interface  LineDelay{
     line: string;
 };
 export  const lineDelaySource = writable<LineDelay[]>([]);
+
+export interface  StopInfo{
+    station: string;
+    short: string;
+    long: string;
+};
+export  const stopInfoSource = writable<StopInfo[]>([]);

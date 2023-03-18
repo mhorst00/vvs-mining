@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { lineDelaySource, type LineDelay } from "../../lib/stores";
+  import { lineDelaySource, type LineDelay } from "$lib/stores";
   import {
     Accordion,
     AccordionItem,
@@ -9,10 +9,11 @@
     tooltip,
   } from "@skeletonlabs/skeleton";
   import { _load, _load_date, _load_timeframe } from "./+page";
-  import FormDate from "./FormDate.svelte";
-  import FormTimeframe from "./FormTimeframe.svelte";
+  import FormDate, { date } from "./FormDate.svelte";
+  import FormTimeframe, { lower, upper } from "./FormTimeframe.svelte";
   let chosenTrain: String[] = [];
   let chosenTimeSetting: string = "lines";
+
   async function applyFilter() {
     let newDelays: LineDelay[] = [];
     lineDelaySource.subscribe((value) => {
@@ -23,20 +24,10 @@
       newDelays = await newValue.delays;
     }
     if (chosenTimeSetting === "lines/date") {
-      const newValue = await _load_date(
-        document.getElementById("line_delay_date").value
-      );
+      const newValue = await _load_date(date);
       newDelays = await newValue.delays;
     }
     if (chosenTimeSetting === "lines/timeframe") {
-      const lower =
-        document.getElementById("line_delay_dates_first").value +
-        " " +
-        document.getElementById("line_delay_time_first").value;
-      const upper =
-        document.getElementById("line_delay_dates_second").value +
-        " " +
-        document.getElementById("line_delay_time_second").value;
       const newValue = await _load_timeframe(lower, upper);
 
       newDelays = await newValue.delays;
@@ -50,7 +41,7 @@
 </script>
 
 <Accordion class="py-4">
-  <AccordionItem closed>
+  <AccordionItem open>
     <svelte:fragment slot="summary"><h3>Filter</h3></svelte:fragment>
     <svelte:fragment slot="content">
       <!-- Choose Train name -->

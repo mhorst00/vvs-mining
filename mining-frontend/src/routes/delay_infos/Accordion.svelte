@@ -6,17 +6,36 @@
     tooltip,
   } from "@skeletonlabs/skeleton";
   import stops from "../haltestellen.json";
-  import { sourceItemSource } from "../../lib/stores";
+  import { _load } from "./+page";
+  import { incidentSource, type IncidentItem } from "$lib/stores";
 
-  let chosenStation: String[] = [];
-  let chosenTrain: String[] = [];
-  let timeInput: String = "";
+  let chosenStation: string[] = [];
+  let chosenTrain: string[] = [];
+  let timeInput: string = "";
 
-  function applyFilter() {}
+  async function applyFilter() {
+    if (timeInput === "" || chosenTrain.length != 1) {
+      //TODO change to better method
+      window.alert("Bitte notwendige Filter setzen");
+      return;
+    }
+    let newDelayInfos: IncidentItem[] = [];
+    incidentSource.subscribe((value) => {
+      newDelayInfos = value;
+    });
+    const newValue = await _load(timeInput, chosenTrain[0]);
+    newDelayInfos = await newValue.incidents;
+    if (chosenStation.length != 0) {
+      newDelayInfos = newDelayInfos.filter((elem) =>
+        chosenStation.includes(elem.station)
+      );
+    }
+    incidentSource.set(newDelayInfos);
+  }
 </script>
 
 <Accordion class="py-4">
-  <AccordionItem closed>
+  <AccordionItem open>
     <svelte:fragment slot="summary"><h3>Filter</h3></svelte:fragment>
     <svelte:fragment slot="content">
       <!-- Choose Stop -->
@@ -45,9 +64,9 @@
       </AccordionItem>
       <!-- Choose Train name -->
       <AccordionItem>
-        <svelte:fragment slot="lead"><h5>Zugname</h5></svelte:fragment>
+        <svelte:fragment slot="lead"><h5>Linie</h5></svelte:fragment>
         <svelte:fragment slot="summary"
-          >Ein oder mehrere Züge auswählen (Erforderlich)</svelte:fragment
+          >Eine Linie auswählen (Erforderlich)</svelte:fragment
         >
         <svelte:fragment slot="content">
           <div
@@ -60,6 +79,8 @@
               bind:value={chosenTrain}
               name="chips"
               allowUpperCase={true}
+              minlength={1}
+              max={1}
             />
           </div>
         </svelte:fragment>
@@ -72,7 +93,7 @@
         >
         <svelte:fragment slot="content">
           <div class="input-group input-group-divider md:max-w-lg">
-            <input class="input" type="date" bind:value={timeInput} />
+            <input class="input" type="date" bind:value={timeInput} required />
           </div>
         </svelte:fragment>
       </AccordionItem>
