@@ -8,9 +8,10 @@
     ListBoxItem,
     tooltip,
   } from "@skeletonlabs/skeleton";
-  import { _load, _load_date, _load_timeframe } from "./+page";
-  import FormDate, { date } from "./FormDate.svelte";
-  import FormTimeframe, { lower, upper } from "./FormTimeframe.svelte";
+  import { _load, _load_date, _load_timeframe, _load_prime } from "./+page";
+  import FormDate from "./FormDate.svelte";
+  import FormTimeframe from "./FormTimeframe.svelte";
+
   let chosenTrain: String[] = [];
   let chosenTimeSetting: string = "lines";
 
@@ -30,6 +31,10 @@
     if (chosenTimeSetting === "lines/timeframe") {
       const newValue = await _load_timeframe(lower, upper);
 
+      newDelays = await newValue.delays;
+    }
+    if (chosenTimeSetting === "lines/prime") {
+      const newValue = await _load_prime();
       newDelays = await newValue.delays;
     }
 
@@ -74,24 +79,32 @@
         <svelte:fragment slot="content">
           <ListBox>
             <ListBoxItem
-              class="md:max-w-lg"
+              class="md:max-w-xl"
               bind:group={chosenTimeSetting}
               name="lines"
               value="lines">Alle Verspätungen anzeigen</ListBoxItem
             >
             <ListBoxItem
-              class="md:max-w-lg"
+              class="md:max-w-xl"
               bind:group={chosenTimeSetting}
               name="lines/date"
               value="lines/date"
               >Alle Verspätungen an einem Tag anzeigen</ListBoxItem
             >
             <ListBoxItem
-              class="md:max-w-lg"
+              class="md:max-w-xl"
               bind:group={chosenTimeSetting}
               name="lines/timeframe"
               value="lines/timeframe"
               >Alle Verspätungen in einem Zeitraum anzeigen</ListBoxItem
+            >
+            <ListBoxItem
+              class="md:max-w-xl"
+              bind:group={chosenTimeSetting}
+              name="lines/prime"
+              value="lines/prime"
+              >Verspätungen zu Hauptzeiten (Mo-Fr: 06:00-09:00, 16:00-19:00)
+              anzeigen</ListBoxItem
             >
           </ListBox>
           {#if chosenTimeSetting == "lines/date"}

@@ -10,9 +10,12 @@
     BarElement,
     CategoryScale,
     LinearScale,
+    type ChartData,
   } from "chart.js";
   import { RadioGroup, RadioItem } from "@skeletonlabs/skeleton";
+  import { stationDelaySource, type StationDelay } from "$lib/stores";
 
+  export let data: any;
   Chart.register(
     Title,
     Tooltip,
@@ -22,22 +25,22 @@
     LinearScale
   );
 
-  export let data;
-  let displayTable = false;
-
-  let sourceHeaders = ["Haltestelle", "Linie", "Durchschnittliche Verspätung"];
-  let sourceBody: string[][] = data.delays.map(
-    (x: { name: string; line: string; avg_delay: number }) => [
-      x.name,
-      x.line,
-      x.avg_delay.toString(),
-    ]
-  );
-
-  let chart_data = {
+  stationDelaySource.set(data.delays);
+  let subscribedSource: StationDelay[] = [];
+  stationDelaySource.subscribe((value) => {
+    subscribedSource = value;
+  });
+  let sourceBody: string[][];
+  $: sourceBody = subscribedSource.map((x: StationDelay) => [
+    x.name,
+    x.line,
+    x.avg_delay.toString(),
+  ]);
+  let sourceChart: ChartData<"bar", number[]>;
+  $: sourceChart = {
     datasets: [
       {
-        data: data.delays.map(
+        data: subscribedSource.map(
           (x: { name: string; line: string; avg_delay: number }) => x.avg_delay
         ),
         label: "Verspätung in Sekunden",
@@ -60,11 +63,13 @@
         ],
       },
     ],
-    labels: data.delays.map(
+    labels: subscribedSource.map(
       (x: { name: string; line: string; avg_delay: number }) =>
         `${x.name} ${x.line}`
     ),
   };
+  let sourceHeaders = ["Haltestelle", "Linie", "Durchschnittliche Verspätung"];
+  let displayTable = false;
 </script>
 
 <Accordion />
@@ -83,5 +88,5 @@
 {#if displayTable}
   <TableWithPaginator {sourceHeaders} {sourceBody} />
 {:else}
-  <Bar data={chart_data} options={{ responsive: true }} />
+  <Bar id="bar-chart" data={sourceChart} options={{ responsive: true }} />
 {/if}

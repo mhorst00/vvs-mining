@@ -2,6 +2,7 @@
   import TableWithPaginator from "../TableWithPaginator.svelte";
   import Accordion from "./Accordion.svelte";
   import { Bar } from "svelte-chartjs";
+  import type { ChartData } from "chart.js";
   import {
     Chart,
     Title,
@@ -12,8 +13,8 @@
     LinearScale,
   } from "chart.js";
   import { RadioGroup, RadioItem } from "@skeletonlabs/skeleton";
-  import { lineDelaySource } from "$lib/stores";
-  import type { LineDelay } from "$lib/stores";
+  import { lineDelaySource, type LineDelay } from "$lib/stores";
+
   export let data: any;
   Chart.register(
     Title,
@@ -24,10 +25,8 @@
     LinearScale
   );
 
-  lineDelaySource.update((value) => (value = data.delays));
-
+  lineDelaySource.set(data.delays);
   let subscribedSource: LineDelay[] = [];
-
   lineDelaySource.subscribe((value) => {
     subscribedSource = value;
   });
@@ -36,9 +35,8 @@
     x.line,
     x.avg_delay.toString(),
   ]);
-  let sourceHeaders: string[] = ["Linie", "Durchschnittliche Verspätung"];
-  let displayTable = false;
-  let chart_data = {
+  let sourceChart: ChartData<"bar", number[]>;
+  $: sourceChart = {
     datasets: [
       {
         data: subscribedSource.map(
@@ -68,6 +66,8 @@
       (x: { line: string; avg_delay: number }) => x.line
     ),
   };
+  let sourceHeaders: string[] = ["Linie", "Durchschnittliche Verspätung"];
+  let displayTable = false;
 </script>
 
 <Accordion />
@@ -86,5 +86,5 @@
 {#if displayTable}
   <TableWithPaginator {sourceHeaders} {sourceBody} />
 {:else}
-  <Bar data={chart_data} options={{ responsive: true }} />
+  <Bar data={sourceChart} options={{ responsive: true }} />
 {/if}

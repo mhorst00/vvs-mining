@@ -1,5 +1,6 @@
 import type { LineDelay } from "$lib/stores";
-export async function load({}) {
+
+export async function load() {
 	const getLineDelays = async () => {
 		const res = await fetch("http://localhost:3000/lines");
 		if (!res.ok) throw new Error(`failed to fetch line delays: ${res.body}`);
@@ -34,6 +35,16 @@ export async function _load_timeframe(lower: String, upper: String) {
 export async function _load() {
 	const getLineDelays = async () => {
 		const res = await fetch("http://localhost:3000/lines");
+		if (!res.ok) throw new Error(`failed to fetch line delays: ${res.body}`);
+		const body = (await res.json()) as LineDelay[];
+		return body;
+	};
+	return { delays: getLineDelays() };
+}
+
+export async function _load_prime() {
+	const getLineDelays = async () => {
+		const res = await fetch("http://localhost:3000/lines/prime");
 		if (!res.ok) throw new Error(`failed to fetch line delays: ${res.body}`);
 		const body = (await res.json()) as LineDelay[];
 		return body;
