@@ -1,0 +1,76 @@
+version: "3.3"
+
+services:
+  traefik:
+    image: "traefik:v2.6"
+    container_name: "traefik"
+    restart: always
+    command:
+      #- "--log.level=DEBUG"
+      #- "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--providers.file.filename=/etc/traefik/traefik-tls.yml"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--entrypoints.websecure.http.tls.options=default@file"
+      - "--entrypoints.web.http.redirections.entryPoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entryPoint.scheme=https"
+      - "--entrypoints.web.http.redirections.entrypoint.permanent=true"
+      - "--certificatesresolvers.vvs-dashboard.acme.email=test@example.com"
+      - "--certificatesresolvers.vvs-dashboard.acme.storage=/cert/acme.json"
+      - "--certificatesresolvers.vvs-dashboard.acme.httpchallenge.entrypoint=web"
+    labels:
+      - "traefik.http.routers.traefik.middlewares=traefik-compress"
+      - "traefik.http.middlewares.traefik-compress.compress=true"
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - ./traefik-tls.yml:/etc/traefik/traefik-tls.yml
+      - traefik_certs:/cert
+
+  backend:
+    image: ghcr.io/mhorst00/vvs-mining-backend:latest
+    container_name: "backend"
+    restart: always
+    environment:
+      - DB_URL=backend-db
+    env_file:
+      - api.env
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.backend.rule=Host(`vvs.maltehorst.com`) && PathPrefix(`/api/v1`)"
+      - "traefik.http.routers.backend.middlewares=backend-stripprefix,secHeaders@file"
+      - "traefik.http.middlewares.backend-stripprefix.stripprefix.prefixes=/api/v1"
+      - "traefik.http.routers.backend.entrypoints=websecure"
+      - "traefik.http.routers.backend.tls=true"
+      - "traefik.http.routers.backend.tls.certresolver=vvs-dashboard"
+
+  frontend:
+    image: ghcr.io/mhorst00/vvs-mining-frontend:latest
+    container_name: "frontend"
+    restart: always
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.frontend.rule=Host(`vvs.maltehorst.com`)"
+      - "traefik.http.routers.frontend.entrypoints=websecure"
+      - "traefik.http.routers.frontend.middlewares=secHeaders@file,frontend-compress"
+      - "traefik.http.routers.frontend.tls=true"
+      - "traefik.http.routers.frontend.tls.certresolver=vvs-dashboard"
+      - "traefik.http.middlewares.frontend-compress.compress=true"
+
+  db:
+    image: postgres:latest
+    restart: always
+    container_name: backend-db
+    env_file:
+      - db.env
+    volumes:
+      - backend_db:/var/lib/postgresql/data
+
+volumes:
+  traefik_certs:
+  backend_db:
