@@ -154,7 +154,7 @@ async fn get_line_delays(
 
 #[utoipa::path(
     get,
-    path = "/lines/date",
+    path = "/api/v1/lines/date",
     responses(
         (status = 200, description = "Get average delay of all lines on specific date in database",
          body = [LineDelay], content_type = "application/json"),
@@ -194,7 +194,7 @@ async fn get_line_delays_date(
 
 #[utoipa::path(
     get,
-    path = "/lines/timeframe",
+    path = "/api/v1/lines/timeframe",
     responses(
         (status = 200, description = "Get average delay of all lines in specific timeframe in database",
          body = [LineDelay], content_type = "application/json"),
@@ -237,7 +237,7 @@ async fn get_line_delays_timeframe(
 
 #[utoipa::path(
     get,
-    path = "/lines/prime",
+    path = "/api/v1/lines/prime",
     responses(
         (status = 200, description = "Returns delay averages in prime timeframe (06:00-09:00 and 16:00-19:00, Mon-Fri)",
          body = [StationDelay], content_type = "application/json"), 
@@ -276,7 +276,7 @@ async fn get_line_delays_prime(
 
 #[utoipa::path(
     get,
-    path = "/stations",
+    path = "/api/v1/stations",
     responses(
         (status = 200, description = "Returns delay average of all trains at all stations stored in database", 
          body = [LineDelay], content_type = "application/json"),
@@ -311,7 +311,7 @@ async fn get_station_delays(
 
 #[utoipa::path(
     get,
-    path = "/stations/date",
+    path = "/api/v1/stations/date",
     responses(
         (status = 200, description = "Returns delay averages for given day",
          body = [StationDelay], content_type = "application/json"),
@@ -353,7 +353,7 @@ async fn get_station_delays_date(
 
 #[utoipa::path(
     get,
-    path = "/stations/timeframe",
+    path = "/api/v1/stations/timeframe",
     responses(
         (status = 200, description = "Returns delay averages in given timeframe",
          body = [StationDelay], content_type = "application/json"), 
@@ -396,7 +396,7 @@ async fn get_station_delays_timeframe(
 
 #[utoipa::path(
     get,
-    path = "/stations/prime",
+    path = "/api/v1/stations/prime",
     responses(
         (status = 200, description = "Returns delay averages in prime timeframe (06:00-09:00 and 16:00-19:00, Mon-Fri)",
          body = [StationDelay], content_type = "application/json"), 
@@ -434,7 +434,7 @@ async fn get_station_delays_prime(
 
 #[utoipa::path(
     get,
-    path = "/infos",
+    path = "/api/v1/infos",
     responses(
         (status = 200, description = "Returns all information about all stations stored in database", 
          body = [StationInfo], content_type = "application/json"),
@@ -468,7 +468,7 @@ async fn get_station_infos(
 
 #[utoipa::path(
     get,
-    path = "/infos/date",
+    path = "/api/v1/infos/date",
     responses(
         (status = 200, description = "Returns all information about all stations at given date stored in database", 
          body = [StationInfo], content_type = "application/json"),
@@ -509,7 +509,7 @@ async fn get_station_infos_date(
 
 #[utoipa::path(
     get,
-    path = "/infos/timeframe",
+    path = "/api/v1/infos/timeframe",
     responses(
         (status = 200, description = "Returns all information about all stations at given date stored in database", 
          body = [StationInfo], content_type = "application/json"),
@@ -552,7 +552,7 @@ async fn get_station_infos_timeframe(
 
 #[utoipa::path(
     get,
-    path = "/incidents",
+    path = "/api/v1/incidents",
     responses(
         (status = 200, description = "Returns all information about all stations stored in database", 
          body = [StationInfo], content_type = "application/json"),
