@@ -31,7 +31,6 @@ use utoipa_swagger_ui::SwaggerUi;
         get_station_infos,
         get_station_infos_date,
         get_station_infos_timeframe,
-        get_incidents,
     ),
     components(schemas(StationDelay, StationInfo, LineDelay, JsonError))
 )]
