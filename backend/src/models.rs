@@ -55,3 +55,8 @@ pub struct RequestTimeFrame {
     pub lower_limit: String,
     pub upper_limit: String,
 }
+
+#[derive(Deserialize, IntoParams)]
+pub struct RequestLine {
+    pub line: String,
+}

@@ -23,13 +23,14 @@ use utoipa_swagger_ui::SwaggerUi;
         get_station_delays,
         get_station_delays_date,
         get_station_delays_timeframe,
+        get_station_delays_prime,
         get_line_delays,
         get_line_delays_date,
         get_line_delays_timeframe,
+        get_line_delays_prime,
         get_station_infos,
         get_station_infos_date,
         get_station_infos_timeframe,
-        get_all_incidents,
     ),
     components(schemas(StationDelay, StationInfo, LineDelay, JsonError))
 )]
@@ -68,9 +69,11 @@ async fn main() {
         .route("/stations", get(get_station_delays))
         .route("/stations/date", get(get_station_delays_date))
         .route("/stations/timeframe", get(get_station_delays_timeframe))
+        .route("/stations/prime", get(get_station_delays_prime))
         .route("/lines", get(get_line_delays))
         .route("/lines/date", get(get_line_delays_date))
         .route("/lines/timeframe", get(get_line_delays_timeframe))
+        .route("/lines/prime", get(get_line_delays_prime))
         .route("/infos", get(get_station_infos))
         .route("/infos/date", get(get_station_infos_date))
         .route("/infos/timeframe", get(get_station_infos_timeframe))
@@ -234,6 +237,45 @@ async fn get_line_delays_timeframe(
 
 #[utoipa::path(
     get,
+    path = "/lines/prime",
+    responses(
+        (status = 200, description = "Returns delay averages in prime timeframe (06:00-09:00 and 16:00-19:00, Mon-Fri)",
+         body = [StationDelay], content_type = "application/json"), 
+        (status = 500, description = "Server error",
+         body = JsonError, content_type = "application/json")
+        ),
+    )
+    ]
+async fn get_line_delays_prime(
+    State(pool): State<ConnectionPool>,
+) -> Result<Json<Vec<LineDelay>>, Json<JsonError>> {
+    let conn = pool.get().await.map_err(internal_error)?;
+
+    let query_string = "select split_part(transportation_name, ' ', 2), avg(delay)::real
+        from station_delay
+        where ((departureTimePlanned::time > '06:00:00' and departureTimePlanned::time < '09:00:00') or 
+	    (departureTimePlanned::time > '16:00:00' and departureTimePlanned::time < '19:00:00')) 
+	    and (EXTRACT(DOW FROM departureTimePlanned) > 0 and EXTRACT(DOW FROM departureTimePlanned) < 6)
+        group by split_part(transportation_name, ' ', 2);";
+
+    let rows = conn
+        .query(query_string, &[])
+        .await
+        .map_err(internal_error)?;
+
+    let mut result = vec![];
+    for row in rows {
+        let x = LineDelay {
+            line: row.try_get(0).map_err(internal_error)?,
+            avg_delay: row.try_get(1).map_err(internal_error)?,
+        };
+        result.push(x);
+    }
+    Ok(Json(result))
+}
+
+#[utoipa::path(
+    get,
     path = "/stations",
     responses(
         (status = 200, description = "Returns delay average of all trains at all stations stored in database", 
@@ -337,6 +379,44 @@ async fn get_station_delays_timeframe(
 
     let rows = conn
         .query(&query_string, &[])
+        .await
+        .map_err(internal_error)?;
+
+    let mut result = vec![];
+    for row in rows {
+        let x = StationDelay {
+            name: row.try_get(0).map_err(internal_error)?,
+            line: row.try_get(1).map_err(internal_error)?,
+            avg_delay: row.try_get(2).map_err(internal_error)?,
+        };
+        result.push(x);
+    }
+    Ok(Json(result))
+}
+
+#[utoipa::path(
+    get,
+    path = "/stations/prime",
+    responses(
+        (status = 200, description = "Returns delay averages in prime timeframe (06:00-09:00 and 16:00-19:00, Mon-Fri)",
+         body = [StationDelay], content_type = "application/json"), 
+        (status = 500, description = "Server error",
+         body = JsonError, content_type = "application/json")
+        ),
+    )]
+async fn get_station_delays_prime(
+    State(pool): State<ConnectionPool>,
+) -> Result<Json<Vec<StationDelay>>, Json<JsonError>> {
+    let conn = pool.get().await.map_err(internal_error)?;
+
+    let query_string = "select name, split_part(transportation_name, ' ', 2), avg(delay)::real
+            from station_delay
+            where ((departureTimePlanned::time > '06:00:00' and departureTimePlanned::time < '09:00:00')
+	            or (departureTimePlanned::time > '16:00:00' and departureTimePlanned::time < '19:00:00'))
+	            and (EXTRACT(DOW FROM departureTimePlanned) > 0 and EXTRACT(DOW FROM departureTimePlanned) < 6)
+            group by name, split_part(transportation_name, ' ', 2);";
+    let rows = conn
+        .query(query_string, &[])
         .await
         .map_err(internal_error)?;
 
