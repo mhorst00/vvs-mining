@@ -10,7 +10,7 @@ interface IncidentItemFull {
 
 export async function _load(date: string, line: string) {
     const getIncidents = async () => {
-        const url = `i${apiUrl}/incidents?date=${date}&line=${line}`;
+        const url = `${apiUrl}/incidents?date=${date}&line=${line}`;
         const res = await fetch(encodeURI(url));
         if (!res.ok) throw new Error(`failed to fetch line delays: ${res.body}`);
         const body = (await res.json()) as IncidentItemFull[];
