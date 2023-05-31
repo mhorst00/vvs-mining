@@ -1,6 +1,6 @@
 <script lang="ts">
   import { Bar, Pie } from "svelte-chartjs";
-  import type { ChartData } from "chart.js";
+  import { BarElement, type ChartData } from "chart.js";
   import {
     Chart,
     Title,
@@ -9,8 +9,8 @@
     ArcElement,
     CategoryScale,
     LinearScale,
-    BarElement,
   } from "chart.js";
+  import type { LineDelay } from "$lib/stores";
 
   export let data: any;
   Chart.register(

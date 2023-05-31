@@ -1,22 +1,39 @@
 <script lang="ts">
   import { Table, Paginator } from "@skeletonlabs/skeleton";
+  import type { PaginationSettings } from "@skeletonlabs/skeleton/components/Paginator/types";
   export let sourceHeaders: any;
 
   export let sourceBody: any;
-
-  let page = {
-    offset: 0,
-    limit: 10,
-    size: sourceBody.length,
-    amounts: [5, 10, 20, 25],
-  };
-
-  $: page = { ...page, size: sourceBody.length };
 
   $: sourceBodySliced = sourceBody.slice(
     page.offset * page.limit,
     page.offset * page.limit + page.limit
   );
+
+  function onPageChange(e: CustomEvent): void {
+    console.log("event:page", e.detail);
+  }
+
+  function onAmountChange(e: CustomEvent): void {
+    console.log("event:amount", e.detail);
+  }
+  let amounts: number[];
+  $: amounts = [5, 10, 25, sourceBody.length].sort((x, y) => {
+    if (x > y) {
+      return 1;
+    }
+    if (x < y) {
+      return -1;
+    }
+    return 0;
+  });
+  let page: PaginationSettings;
+  $: page = {
+    offset: 0,
+    limit: 10,
+    size: sourceBody.length,
+    amounts: amounts,
+  };
 </script>
 
 <section class="card variant-glass p-4 space-y-4">
@@ -26,5 +43,13 @@
       body: sourceBodySliced,
     }}
   />
+<<<<<<< HEAD
   <Paginator bind:settings={page} />
+=======
+  <Paginator
+    bind:settings={page}
+    on:page={onPageChange}
+    on:amount={onAmountChange}
+  />
+>>>>>>> 706c936 (Develop (#24))
 </section>
