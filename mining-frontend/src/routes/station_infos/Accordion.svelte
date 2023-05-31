@@ -6,7 +6,6 @@
     InputChip,
     ListBox,
     ListBoxItem,
-    tooltip,
   } from "@skeletonlabs/skeleton";
   import stops from "../haltestellen.json";
   import { _load, _load_date, _load_timeframe } from "./+page";
@@ -56,21 +55,13 @@
           >Ein oder mehrere Haltestellen auswählen</svelte:fragment
         >
         <svelte:fragment slot="content">
-          <div
-            use:tooltip={{
-              content:
-                "Nur gültige Haltestellen mit korrekter Groß-/Kleinschreibung",
-              position: "bottom",
-            }}
-          >
-            <InputChip
-              list="stopsDatalist"
-              bind:value={chosenStation}
-              name="chips"
-              whitelist={stops}
-              allowUpperCase={true}
-            />
-          </div>
+          <InputChip
+            list="stopsDatalist"
+            bind:value={chosenStation}
+            name="chips"
+            whitelist={stops}
+            allowUpperCase={true}
+          />
         </svelte:fragment>
       </AccordionItem>
       <!-- choose time or timeframe: -->

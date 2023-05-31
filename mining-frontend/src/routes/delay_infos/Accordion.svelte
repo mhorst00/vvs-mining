@@ -1,10 +1,5 @@
 <script lang="ts">
-  import {
-    Accordion,
-    AccordionItem,
-    InputChip,
-    tooltip,
-  } from "@skeletonlabs/skeleton";
+  import { Accordion, AccordionItem, InputChip } from "@skeletonlabs/skeleton";
   import stops from "../haltestellen.json";
   import { _load } from "./+page";
   import { incidentSource, type IncidentItem } from "$lib/stores";
@@ -45,21 +40,13 @@
           >Ein oder mehrere Haltestellen auswählen</svelte:fragment
         >
         <svelte:fragment slot="content">
-          <div
-            use:tooltip={{
-              content:
-                "Nur gültige Haltestellen mit korrekter Groß-/Kleinschreibung",
-              position: "bottom",
-            }}
-          >
-            <InputChip
-              list="stopsDatalist"
-              bind:value={chosenStation}
-              name="chips"
-              whitelist={stops}
-              allowUpperCase={true}
-            />
-          </div>
+          <InputChip
+            list="stopsDatalist"
+            bind:value={chosenStation}
+            name="chips"
+            whitelist={stops}
+            allowUpperCase={true}
+          />
         </svelte:fragment>
       </AccordionItem>
       <!-- Choose Train name -->
@@ -69,20 +56,13 @@
           >Eine Linie auswählen (Erforderlich)</svelte:fragment
         >
         <svelte:fragment slot="content">
-          <div
-            use:tooltip={{
-              content: "Auf korrekte Groß-/Kleinschreibung achten",
-              position: "bottom",
-            }}
-          >
-            <InputChip
-              bind:value={chosenTrain}
-              name="chips"
-              allowUpperCase={true}
-              minlength={1}
-              max={1}
-            />
-          </div>
+          <InputChip
+            bind:value={chosenTrain}
+            name="chips"
+            allowUpperCase={true}
+            minlength={1}
+            max={1}
+          />
         </svelte:fragment>
       </AccordionItem>
       <!-- choose Date: -->

@@ -6,7 +6,6 @@
     InputChip,
     ListBox,
     ListBoxItem,
-    tooltip,
   } from "@skeletonlabs/skeleton";
   import { _load, _load_date, _load_timeframe, _load_prime } from "./+page";
   import FormDate from "./FormDate.svelte";
@@ -56,18 +55,11 @@
           >Ein oder mehrere Züge auswählen</svelte:fragment
         >
         <svelte:fragment slot="content">
-          <div
-            use:tooltip={{
-              content: "Auf korrekte Groß-/Kleinschreibung achten",
-              position: "bottom",
-            }}
-          >
-            <InputChip
-              bind:value={chosenTrain}
-              name="chips"
-              allowUpperCase={true}
-            />
-          </div>
+          <InputChip
+            bind:value={chosenTrain}
+            name="chips"
+            allowUpperCase={true}
+          />
         </svelte:fragment>
       </AccordionItem>
       <!-- choose time or timeframe: -->
