@@ -2,17 +2,17 @@ import functools
 from datetime import datetime
 from pathlib import Path
 
-import discord_logging
 import sqlalchemy.exc
 import vvspy
 from sqlalchemy import (Boolean, Column, DateTime, ForeignKey, Integer,
                         Sequence, String, create_engine)
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, sessionmaker
+from utils import PATH
 
-Path("./test/db").mkdir(exist_ok=True)
+Path(f"{PATH}/db").mkdir(exist_ok=True)
 CURRENT_DATE = datetime.now().date()
-ENGINE = create_engine(f"sqlite:///test/db/{str(CURRENT_DATE)}.db")
+ENGINE = create_engine(f"sqlite:///{PATH}/db/{str(CURRENT_DATE)}.db")
 SESSION = sessionmaker(bind=ENGINE)()
 ENTITY_BASE = declarative_base()
 
@@ -81,7 +81,7 @@ def daily_db(func):
         global ENTITY_BASE
         new_date = datetime.now().date()
         if new_date > CURRENT_DATE:
-            ENGINE = create_engine(f"sqlite:///test/db/{str(new_date)}.db")
+            ENGINE = create_engine(f"sqlite:///{PATH}/db/{str(new_date)}.db")
             SESSION = sessionmaker(bind=ENGINE)()
             CURRENT_DATE = new_date
             ENTITY_BASE.metadata.create_all(ENGINE)

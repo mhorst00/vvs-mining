@@ -1,8 +1,10 @@
 import logging
 import os
-from discord import SyncWebhook, File
 from datetime import datetime
 from pathlib import Path
+
+from discord import File, SyncWebhook
+from utils import PATH
 
 infoCount = 0
 warningCount = 0
@@ -23,14 +25,14 @@ WEBHOOK_LOGGING_ENABLED = True
 
 WEBHOOK_LOGGING: SyncWebhook
 
-LOG_FILENAME = f'/data/logs/mining_log {str(datetime.now()).replace(" ", "_")}.log'
+LOG_FILENAME = f'{PATH}/logs/mining_log-{str(datetime.now()).replace(" ", "-")}.log'
 
 
 def initialise():
     global WEBHOOK_LOGGING_ENABLED
     global WEBHOOK_LOGGING
     global LOG_FILENAME
-    Path("/data/logs").mkdir(exist_ok=True)
+    Path(f"{PATH}/logs").mkdir(exist_ok=True)
 
     logging.basicConfig(
         filename=LOG_FILENAME,

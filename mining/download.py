@@ -26,16 +26,19 @@ if __name__ == "__main__":
     hf_stations = utils.read_station_ids_csv("vvs_hf_stations.csv")
     lf_stations = utils.read_station_ids_csv("vvs_lf_stations.csv")
     try:
-        deps = get_all_departures(lf_stations, curr_time, 10)
-        deps.extend(get_all_departures(hf_stations, curr_time, 20))
+        if curr_time.hour > 20 or curr_time.hour < 7:
+            deps = get_all_departures(lf_stations, curr_time, 10)
+            deps.extend(get_all_departures(hf_stations, curr_time, 20))
+        else:
+            deps = get_all_departures(lf_stations, curr_time, 20)
+            deps.extend(get_all_departures(hf_stations, curr_time, 40))
         dep_count = len(deps)
-        print(dep_count)
         x = db.new_entries(deps)
         if x:
             discord_logging.error(f"Could not save departures. Reason: {x}")
         time_for_execute = datetime.now() - curr_time
-        discord_logging.finishLogging(dep_count, sys.getsizeof(deps))
+        discord_logging.finishLogging(dep_count)
         del deps
     except Exception as err:
         discord_logging.error(err)
-        discord_logging.finishLogging(0, 0)
+        discord_logging.finishLogging(dep_count)

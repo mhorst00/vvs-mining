@@ -1,6 +1,12 @@
 import csv
+from os import environ
 
 full_station_file = []
+
+if environ.get("DEV"):
+    PATH = "./test"
+else:
+    PATH = "/data"
 
 
 def read_station_ids_csv(file: str) -> list[str]:
