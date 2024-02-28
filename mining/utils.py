@@ -2,8 +2,6 @@ import csv
 import json
 
 full_station_file = []
-proxy_list = []
-
 
 def read_station_ids_csv(file: str) -> list[str]:
     """Read csv file with VVS stations line-by-line"""
@@ -20,6 +18,7 @@ def station_id_to_name(station_id: str) -> str:
     for line in full_station_file:
         if line[3] == station_id:
             return line[0]
+
 
 if __name__ == "__main__":
     tmp = read_station_ids_csv("vvs_sbahn_haltestellen_2022.csv")
