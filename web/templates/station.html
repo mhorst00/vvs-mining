@@ -1,3 +1,36 @@
-{% for elem in stations %}
-<p>Name: {{ elem.0 }} Delay: {{ elem.1 }}</p>
-{% endfor %}
+<div>
+  <canvas id="myChart"></canvas>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+  const ctx = document.getElementById('myChart');
+
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+    labels: [
+      {% for elem in stations %}'{{ elem.stop_name }}'{% if !loop.last %},{% endif %}{% endfor %}
+    ],
+    datasets: [{
+      label: 'Average delay in minutes',
+      data: [
+        {% for elem in stations %}{{ elem.delay }}{% if !loop.last %},{% endif %}{% endfor %}
+      ],
+      borderWidth: 1
+    }]
+    },
+    options: {
+      indexAxis: 'y',
+      scales: {
+        x: {
+          ticks: {
+            display: true,
+            autoSkip: false
+          }
+        }
+      }
+    }
+  });
+</script>
