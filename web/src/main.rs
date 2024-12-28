@@ -27,5 +27,5 @@ async fn main() -> anyhow::Result<()> {
     sqlx::migrate!().run(&db).await?;
     tracing::debug!("Ran migrations successfully");
 
-    web::http::serve(db).await
+    web::serve(db).await
 }

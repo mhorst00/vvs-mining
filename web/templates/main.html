@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block title %}Main{% endblock %}
+
+{% block head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+<div>
+  <canvas id="stations_chart"></canvas>
+  <canvas id="lines_chart"></canvas>
+</div>
+
+<script>
+  const stations_ctx = document.getElementById('stations_chart');
+  const lines_ctx = document.getElementById('lines_chart');
+
+  new Chart(stations_ctx, {
+    type: 'bar',
+    data: {
+    labels: [
+      {% for elem in stations %}'{{ elem.stop_name }}'{% if !loop.last %},{% endif %}{% endfor %}
+    ],
+    datasets: [{
+      label: 'Average delay in minutes',
+      data: [
+        {% for elem in stations %}{{ elem.delay }}{% if !loop.last %},{% endif %}{% endfor %}
+      ],
+      borderWidth: 1
+    }]
+    },
+    options: {
+      indexAxis: 'y',
+      scales: {
+        x: {
+          ticks: {
+            display: true,
+            autoSkip: false
+          }
+        }
+      }
+    }
+  });
+
+  new Chart(lines_ctx, {
+    type: 'bar',
+    data: {
+    labels: [
+      {% for elem in lines %}'{{ elem.name }}'{% if !loop.last %},{% endif %}{% endfor %}
+    ],
+    datasets: [{
+      label: 'Average delay in minutes',
+      data: [
+        {% for elem in lines %}{{ elem.delay }}{% if !loop.last %},{% endif %}{% endfor %}
+      ],
+      borderWidth: 1
+    }]
+    },
+    options: {
+      indexAxis: 'y',
+      scales: {
+        x: {
+          ticks: {
+            display: true,
+            autoSkip: false
+          }
+        }
+      }
+    }
+  });
+</script>
+{% endblock %}
